@@ -1,0 +1,104 @@
+@model IEnumerable<TechStore.Models.HoaDon>
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-secondary"><i class="bi bi-receipt me-2"></i>QUẢN LÝ ĐƠN HÀNG</h3>
+    <button class="btn btn-outline-success btn-sm" onclick="alert('Tính năng đang phát triển')"><i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel</button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Mã đơn, tên khách..." value="@ViewBag.Search">
+            </div>
+            <div class="col-md-4">
+                <select name="status" class="form-select" asp-items="ViewBag.Statuses">
+                    <option value="-1">-- Tất cả trạng thái --</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i> Lọc dữ liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Mã ĐH</th>
+                        <th>Khách hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            // Tính tổng tiền an toàn
+                            var tongTien = item.ChiTietHoaDons?.Sum(ct => ct.DonGia * ct.SoLuong) ?? 0;
+                            
+                            <tr>
+                                <td class="ps-4 fw-bold">#@item.MaHd</td>
+                                <td>
+                                    <div class="fw-bold">@(item.HoTenNguoiNhan ?? item.MaKhNavigation?.HoTen ?? "Khách vãng lai")</div>
+                                    <div class="small text-muted">@item.SdtnguoiNhan</div>
+                                </td>
+                                <td>@item.NgayDat?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="text-danger fw-bold">@tongTien.ToString("#,##0")₫</td>
+                                <td>
+                                    @{
+                                        var statusName = item.MaTrangThaiNavigation?.TenTrangThai ?? "N/A";
+                                        var badgeClass = item.MaTrangThai switch {
+                                            0 => "bg-warning text-dark", // Mới
+                                            1 => "bg-info",              // Duyệt
+                                            2 => "bg-primary",           // Giao
+                                            3 => "bg-success",           // Xong
+                                            -1 => "bg-secondary",        // Hủy
+                                            _ => "bg-light text-dark"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">@statusName</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a href="/Admin/DonHang/Detail/@item.MaHd" class="btn btn-sm btn-info text-white" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <!-- Modal cập nhật trạng thái (nếu cần) -->
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center py-4">Không có đơn hàng nào.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="card-footer bg-white py-3">
+            <ul class="pagination justify-content-center mb-0">
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="?page=@i&status=@ViewBag.SelectedStatus&search=@ViewBag.Search">@i</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</div>

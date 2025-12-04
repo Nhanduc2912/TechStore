@@ -1,0 +1,159 @@
+@{
+    ViewData["Title"] = "Tổng quan hệ thống";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container-fluid p-4">
+    <h3 class="fw-bold mb-4 text-secondary"><i class="bi bi-speedometer2 me-2"></i>TỔNG QUAN HỆ THỐNG</h3>
+
+    <!-- 4 THẺ THỐNG KÊ -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 border-start border-5 border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small fw-bold text-uppercase mb-1">Doanh thu</div>
+                            <!-- Xử lý null cho ViewBag.DoanhThu -->
+                            <h4 class="fw-bold text-success mb-0">@ViewBag.DoanhThu</h4>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                            <i class="bi bi-currency-dollar fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 border-start border-5 border-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small fw-bold text-uppercase mb-1">Đơn hàng</div>
+                            <h4 class="fw-bold text-primary mb-0">@ViewBag.TongDonHang</h4>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                            <i class="bi bi-receipt fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 border-start border-5 border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small fw-bold text-uppercase mb-1">Sản phẩm</div>
+                            <h4 class="fw-bold text-warning mb-0">@ViewBag.TongSanPham</h4>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                            <i class="bi bi-box-seam fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 border-start border-5 border-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small fw-bold text-uppercase mb-1">Khách hàng</div>
+                            <h4 class="fw-bold text-info mb-0">@ViewBag.TongKhachHang</h4>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                            <i class="bi bi-people fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIỂU ĐỒ & TOP SẢN PHẨM -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white fw-bold py-3">
+                    <i class="bi bi-graph-up-arrow me-2"></i> Biểu đồ doanh thu (7 ngày qua)
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white fw-bold py-3">
+                    <i class="bi bi-trophy me-2 text-warning"></i> Top 5 Bán Chạy
+                </div>
+                <ul class="list-group list-group-flush">
+                    @if (ViewBag.TopProducts != null)
+                    {
+                        @foreach (dynamic item in ViewBag.TopProducts)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <!-- SỬA LỖI: Dùng TenHh thay vì Name -->
+                                <span class="text-truncate" style="max-width: 200px;" title="@item.TenHh">@item.TenHh</span>
+                                <!-- SỬA LỖI: Dùng SoLuong thay vì Sold -->
+                                <span class="badge bg-primary rounded-pill">@item.SoLuong</span>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-center text-muted">Chưa có dữ liệu bán hàng</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Lấy dữ liệu JSON từ ViewBag, xử lý null bằng chuỗi rỗng "[]"
+    var labels = @Html.Raw(ViewBag.ChartLabels ?? "[]");
+    var data = @Html.Raw(ViewBag.ChartData ?? "[]");
+
+    var ctx = document.getElementById('revenueChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Doanh thu (VNĐ)',
+                data: data,
+                backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        // Format tiền tệ trục Y
+                        callback: function(value) {
+                            return value.toLocaleString('vi-VN') + '₫';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>

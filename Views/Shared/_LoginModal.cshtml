@@ -1,0 +1,117 @@
+﻿<!-- Modal Đăng nhập / Đăng ký -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow border-0">
+            <div class="modal-header border-bottom-0 bg-light rounded-top-4">
+                <h5 class="modal-title fw-bold text-danger">TECHSTORE MEMBER</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                
+                <!-- Tabs -->
+                <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-pill" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active rounded-pill fw-bold small" id="pills-login-tab" data-bs-toggle="pill" data-bs-target="#pills-login" type="button">ĐĂNG NHẬP</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-bold small" id="pills-register-tab" data-bs-toggle="pill" data-bs-target="#pills-register" type="button">ĐĂNG KÝ</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="pills-tabContent">
+                    <!-- TAB ĐĂNG NHẬP -->
+                    <div class="tab-pane fade show active" id="pills-login" role="tabpanel">
+                        <!-- Hiển thị lỗi Đăng nhập -->
+                        @if (TempData["LoginError"] != null)
+                        {
+                            <div class="alert alert-danger small py-2 fw-bold text-center mb-3">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["LoginError"]
+                            </div>
+                        }
+                        @if (TempData["Loi"] != null)
+                        {
+                             <div class="alert alert-danger small py-2 fw-bold text-center mb-3">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Loi"]
+                            </div>
+                        }
+
+                        <form asp-controller="KhachHang" asp-action="DangNhap" method="post">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="info" class="form-control bg-light" id="loginInput" placeholder="Email/Username" required>
+                                <label for="loginInput">Email hoặc Tên đăng nhập</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="password" name="matkhau" class="form-control bg-light" id="loginPassword" placeholder="Password" required>
+                                <label for="loginPassword">Mật khẩu</label>
+                            </div>
+                            <button type="submit" class="btn btn-danger bg-gearvn w-100 py-3 fw-bold shadow-sm">ĐĂNG NHẬP NGAY</button>
+                        </form>
+                    </div>
+
+                    <!-- TAB ĐĂNG KÝ -->
+                    <div class="tab-pane fade" id="pills-register" role="tabpanel">
+                        <!-- Hiển thị lỗi Đăng ký -->
+                        @if (TempData["RegisterError"] != null)
+                        {
+                            <div class="alert alert-danger small py-2 fw-bold text-center mb-3">
+                                <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["RegisterError"]
+                            </div>
+                        }
+
+                        <form asp-controller="KhachHang" asp-action="DangKy" method="post">
+                            <div class="form-floating mb-2">
+                                <input type="text" name="HoTen" class="form-control bg-light" id="regName" placeholder="Họ tên" required value="@TempData["Reg_HoTen"]">
+                                <label for="regName">Họ và tên hiển thị</label>
+                            </div>
+                            <div class="form-floating mb-2">
+                                <input type="text" name="TenDangNhap" class="form-control bg-light" id="regUser" placeholder="Username" required value="@TempData["Reg_TenDangNhap"]">
+                                <label for="regUser">Tên đăng nhập (viết liền)</label>
+                            </div>
+                            <div class="form-floating mb-2">
+                                <input type="email" name="Email" class="form-control bg-light" id="regEmail" placeholder="Email" required value="@TempData["Reg_Email"]">
+                                <label for="regEmail">Email (dùng để xác thực)</label>
+                            </div>
+                            <div class="form-floating mb-2">
+                                <input type="tel" name="SDT" class="form-control bg-light" id="regPhone" placeholder="Phone" value="@TempData["Reg_SDT"]">
+                                <label for="regPhone">Số điện thoại</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="password" name="MatKhau" class="form-control bg-light" id="regPass" placeholder="Password" required>
+                                <label for="regPass">Mật khẩu (>6 ký tự)</label>
+                            </div>
+                            <button type="submit" class="btn btn-dark w-100 py-3 fw-bold shadow-sm">TẠO TÀI KHOẢN MỚI</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LOGIC JAVASCRIPT TỰ ĐỘNG BẬT MODAL VÀ CHUYỂN TAB -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Nếu có lỗi Đăng nhập hoặc thông báo chung -> Bật Modal, ở Tab Login
+        @if (TempData["LoginError"] != null || TempData["Loi"] != null)
+        {
+            <text>
+                var myModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                myModal.show();
+            </text>
+        }
+        
+        // Nếu có lỗi Đăng ký -> Bật Modal, chuyển sang Tab Register
+        @if (TempData["RegisterError"] != null)
+        {
+            <text>
+                var myModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                myModal.show();
+                
+                // Chuyển sang tab đăng ký
+                var triggerEl = document.querySelector('#pills-register-tab');
+                var tab = new bootstrap.Tab(triggerEl);
+                tab.show();
+            </text>
+        }
+    });
+</script>

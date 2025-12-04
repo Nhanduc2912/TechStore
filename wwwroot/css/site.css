@@ -1,0 +1,133 @@
+﻿html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f4; /* Nền xám nhẹ làm nổi bật sản phẩm */
+  color: #333;
+}
+
+a {
+  text-decoration: none;
+  color: #333;
+}
+
+/* --- GEARVN STYLE COLORS --- */
+:root {
+  --gearvn-red: #e30019;
+  --gearvn-dark: #1f1f1f;
+  --gearvn-hover: #c90016;
+}
+
+/* Header Style */
+.bg-gearvn {
+  background-color: var(--gearvn-red);
+}
+
+.search-bar input {
+  border-radius: 4px 0 0 4px;
+  border: none;
+}
+
+.search-bar button {
+  background-color: #333;
+  color: red;
+  border-radius: 0 4px 4px 0;
+  border: none;
+}
+
+/* Product Card Style */
+.product-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  height: 100%;
+  position: relative;
+  padding: 10px;
+}
+
+.product-card:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+  border-color: var(--gearvn-red);
+  transform: translateY(-2px);
+}
+
+.product-img-container {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-img-container img {
+  max-height: 100%;
+  max-width: 100%;
+  transition: transform 0.3s;
+}
+
+.product-card:hover .product-img-container img {
+  transform: scale(1.05);
+}
+
+.product-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 10px 0;
+  line-height: 1.4;
+  height: 40px; /* Giới hạn 2 dòng */
+  overflow: hidden;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.product-price {
+  color: var(--gearvn-red);
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.btn-buy-now {
+  background-color: #fff;
+  color: var(--gearvn-red);
+  border: 1px solid var(--gearvn-red);
+  font-weight: 600;
+  width: 100%;
+  margin-top: 10px;
+  transition: all 0.2s;
+}
+
+.btn-buy-now:hover {
+  background-color: var(--gearvn-red);
+  color: #fff;
+}
+
+/* Section Header */
+.section-header {
+  background-color: var(--gearvn-red);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.section-header a {
+  color: white;
+  font-size: 14px;
+  font-weight: normal;
+}

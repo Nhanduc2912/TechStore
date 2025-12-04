@@ -1,0 +1,129 @@
+@model IEnumerable<TechStore.Models.DanhMuc>
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="page-header">
+    <h1><i class="bi bi-tags me-2"></i>Quản lý danh mục</h1>
+    <div class="btn-group-header">
+        <a href="/Admin/DanhMuc/Create" class="btn btn-primary btn-sm shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> Thêm danh mục
+        </a>
+    </div>
+</div>
+
+<!-- ALERTS (Thông báo thành công/lỗi từ Controller) -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- CARD DANH SÁCH -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <div class="row align-items-center">
+            <div class="col">
+                <strong class="text-primary"><i class="bi bi-list-ul me-2"></i>Danh sách danh mục</strong>
+            </div>
+            <div class="col-auto">
+                <span class="text-muted small">Tổng: @Model.Count() danh mục</span>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">ID</th>
+                    <th>Hình ảnh</th>
+                    <th>Tên danh mục</th>
+                    <th class="text-center">Số sản phẩm</th>
+                    <th class="text-end pe-4">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 text-muted">#@item.MaDm</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                {
+                                    <img src="~/Hinh/DanhMuc/@item.HinhAnh" class="rounded" style="width: 40px; height: 40px; object-fit: contain;" onerror="this.src='https://placehold.co/40x40?text=Icon'">
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">No Icon</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="fw-bold text-dark">@item.TenDm</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info bg-opacity-10 text-info border border-info rounded-pill">
+                                    @(item.HangHoas?.Count ?? 0) sản phẩm
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="/Admin/DanhMuc/Edit/@item.MaDm" class="btn btn-sm btn-outline-warning" title="Sửa">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteCategory(@item.MaDm)" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                            Chưa có danh mục nào.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteCategory(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa danh mục này không? Hành động này không thể hoàn tác.')) {
+                $.ajax({
+                    url: '/Admin/DanhMuc/Delete/' + id,
+                    type: 'POST',
+                    success: function (res) {
+                        if (res.success) {
+                            // Reload lại trang để cập nhật danh sách
+                            location.reload();
+                        } else {
+                            alert(res.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Đã có lỗi xảy ra khi xóa!');
+                    }
+                });
+            }
+        }
+    </script>
+}

@@ -1,0 +1,103 @@
+﻿@model List<TechStore.ViewModels.CartItem>
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<div class="container py-4">
+    <h2 class="fw-bold mb-4 text-uppercase">Giỏ hàng của bạn</h2>
+
+    @if (Model.Count > 0)
+    {
+        <div class="row">
+            <div class="col-md-8">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle border">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Giá</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img src="~/Hinh/HangHoa/@item.HinhAnh" style="width: 70px; height: 70px; object-fit: contain;" class="border rounded p-1">
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">@item.TenHh</h6>
+                                                <small class="text-muted">Mã: #@item.MaHh</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@item.DonGia.ToString("#,##0")₫</td>
+                                    <td>
+                                        <div class="input-group input-group-sm" style="width: 120px;">
+                                            <!-- Nút Giảm: Gọi hàm UpdateCart với số lượng = hiện tại - 1 -->
+                                            <a href="/GioHang/UpdateCart?id=@item.MaHh&quantity=@(item.SoLuong - 1)" class="btn btn-outline-secondary fw-bold">
+                                                -
+                                            </a>
+
+                                            <!-- Ô hiển thị số lượng (Readonly để tránh người dùng nhập chữ lung tung) -->
+                                            <input type="text" class="form-control text-center" value="@item.SoLuong" readonly>
+
+                                            <!-- Nút Tăng: Gọi hàm UpdateCart với số lượng = hiện tại + 1 -->
+                                            <a href="/GioHang/UpdateCart?id=@item.MaHh&quantity=@(item.SoLuong + 1)" class="btn btn-outline-secondary fw-bold">
+                                                +
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold text-danger">@item.ThanhTien.ToString("#,##0")₫</td>
+                                    <td>
+                                        <a href="/GioHang/RemoveCart/@item.MaHh" class="text-danger" title="Xóa">
+                                            <i class="bi bi-trash fs-5"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-light">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Tổng đơn hàng</h5>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Tạm tính:</span>
+                            <span class="fw-bold">@Model.Sum(p => p.ThanhTien).ToString("#,##0")₫</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 text-success">
+                            <span>Giảm giá:</span>
+                            <span>-0₫</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4 fs-5">
+                            <span class="fw-bold">Tổng cộng:</span>
+                            <span class="fw-bold text-danger">@Model.Sum(p => p.ThanhTien).ToString("#,##0")₫</span>
+                        </div>
+                        <a asp-action="Checkout" class="btn btn-danger bg-gearvn w-100 py-3 fw-bold text-uppercase text-decoration-none">
+                            Tiến hành thanh toán
+                        </a>
+                        <a href="/" class="d-block text-center mt-3 text-decoration-none text-muted small">
+                            <i class="bi bi-arrow-left"></i> Tiếp tục mua sắm
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <img src="https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/9bdd8040b334d31946f49e36beaf32db.png" style="width: 150px;" class="mb-3 opacity-50">
+            <h5 class="text-muted">Giỏ hàng của bạn đang trống</h5>
+            <a href="/" class="btn btn-danger bg-gearvn mt-3 px-4">MUA NGAY</a>
+        </div>
+    }
+</div>

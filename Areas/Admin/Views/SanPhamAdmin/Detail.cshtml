@@ -1,0 +1,56 @@
+@model TechStore.Models.HangHoa
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="page-header">
+    <h1><i class="bi bi-info-circle me-2"></i>Chi tiết sản phẩm: @Model.TenHh</h1>
+    <a href="/Admin/SanPham" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Quay lại</a>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center justify-content-center bg-light">
+                <img src="~/Hinh/HangHoa/@Model.HinhAnh" class="img-fluid rounded" style="max-height: 400px;" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <table class="table table-striped">
+                    <tr><th style="width: 150px;">ID</th><td>#@Model.MaHh</td></tr>
+                    <tr><th>Tên sản phẩm</th><td class="fw-bold text-primary">@Model.TenHh</td></tr>
+                    <tr><th>Alias</th><td>@Model.TenAlias</td></tr>
+                    <tr><th>Danh mục</th><td><span class="badge bg-info text-dark">@(Model.MaDmNavigation?.TenDm ?? "N/A")</span></td></tr>
+                    <tr><th>Thương hiệu</th><td>@(Model.MaThNavigation?.TenTh ?? "N/A")</td></tr>
+                    <tr><th>Giá nhập</th><td>@((Model.GiaNhap ?? 0).ToString("#,##0"))₫</td></tr>
+                    <tr><th>Giá bán</th><td class="text-danger fw-bold">@Model.DonGia.ToString("#,##0")₫</td></tr>
+                    <tr><th>Tồn kho</th><td>@Model.SoLuong</td></tr>
+                    <tr><th>Lượt xem</th><td>@Model.SoLuotXem</td></tr>
+                    <tr><th>Ngày tạo</th><td>@Model.NgaySx?.ToString("dd/MM/yyyy HH:mm")</td></tr>
+                </table>
+
+                <h5 class="mt-4 border-bottom pb-2">Thông số kỹ thuật</h5>
+                <div class="row small">
+                    <div class="col-md-3 mb-2"><strong>RAM:</strong> @Model.Ram</div>
+                    <div class="col-md-3 mb-2"><strong>Bộ nhớ:</strong> @Model.BoNho</div>
+                    <div class="col-md-3 mb-2"><strong>Màu sắc:</strong> @Model.MauSac</div>
+                    <div class="col-md-3 mb-2"><strong>HĐH:</strong> @Model.HeDieuHanh</div>
+                </div>
+
+                <h5 class="mt-4 border-bottom pb-2">Mô tả</h5>
+                <p class="text-muted">@Model.MoTaNgan</p>
+                <div class="bg-light p-3 rounded border">
+                    @Html.Raw(Model.MoTaChiTiet ?? "Chưa có bài viết chi tiết")
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <a href="/Admin/SanPham/Edit/@Model.MaHh" class="btn btn-warning"><i class="bi bi-pencil"></i> Sửa thông tin</a>
+            </div>
+        </div>
+    </div>
+</div>

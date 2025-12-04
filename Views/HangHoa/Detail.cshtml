@@ -1,0 +1,233 @@
+﻿@model TechStore.Models.HangHoa
+@{
+    ViewData["Title"] = Model.TenHh;
+    var sanPhamTuongTu = ViewBag.SanPhamTuongTu as List<TechStore.Models.HangHoa>;
+    
+    // Kiểm tra trạng thái
+    bool isOutOfStock = (Model.SoLuong ?? 0) <= 0;
+    bool isHidden = Model.HieuLuc == false;
+}
+
+<!-- Breadcrumb (Thanh điều hướng) -->
+<nav aria-label="breadcrumb" class="my-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">@Model.MaDmNavigation?.TenDm</a></li>
+        <li class="breadcrumb-item active text-truncate fw-bold" style="max-width: 300px;" aria-current="page">@Model.TenHh</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <!-- CỘT TRÁI: HÌNH ẢNH SẢN PHẨM -->
+    <div class="col-md-5 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="p-3 d-flex align-items-center justify-content-center bg-white rounded position-relative" style="min-height: 400px;">
+                <img src="~/Hinh/HangHoa/@Model.HinhAnh" class="img-fluid" alt="@Model.TenHh" 
+                     onerror="this.src='https://placehold.co/500x500?text=No+Image'">
+            </div>
+        </div>
+        <!-- Album ảnh nhỏ (Demo) -->
+        <div class="d-flex gap-2 mt-2 justify-content-center">
+            <div class="border p-1 rounded border-danger shadow-sm" style="width: 80px; cursor: pointer;">
+                <img src="~/Hinh/HangHoa/@Model.HinhAnh" class="img-fluid">
+            </div>
+            <div class="border p-1 rounded opacity-50" style="width: 80px; cursor: pointer;">
+                <img src="https://placehold.co/100x100?text=Mat+Sau" class="img-fluid rounded">
+            </div>
+             <div class="border p-1 rounded opacity-50" style="width: 80px; cursor: pointer;">
+                <img src="https://placehold.co/100x100?text=Canh+Ben" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+
+    <!-- CỘT PHẢI: THÔNG TIN CHI TIẾT & NÚT MUA -->
+    <div class="col-md-7">
+        <h1 class="fw-bold fs-3 mb-3">@Model.TenHh</h1>
+        
+        <!-- HIỂN THỊ LỖI TỪ GIOHANGCONTROLLER (NẾU CÓ) -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger mb-3 shadow-sm border-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            </div>
+        }
+
+        <div class="d-flex gap-3 text-muted small mb-3 align-items-center">
+            <span>Mã SP: <span class="text-dark fw-bold">#@Model.MaHh</span></span>
+            <span class="text-secondary">|</span>
+            <span>Lượt xem: <span class="text-primary fw-bold">@Model.SoLuotXem</span></span>
+             <span class="text-secondary">|</span>
+            
+            <!-- TRẠNG THÁI KHO -->
+            @if (isHidden)
+            {
+                <span class="text-danger fw-bold"><i class="bi bi-slash-circle"></i> Ngừng kinh doanh</span>
+            }
+            else if (isOutOfStock)
+            {
+                <span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Hết hàng</span>
+            }
+            else
+            {
+                <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Còn hàng (@Model.SoLuong)</span>
+            }
+        </div>
+
+        <!-- Giá bán -->
+        <div class="bg-light p-3 rounded mb-4 shadow-sm border">
+            <div class="d-flex align-items-end gap-3">
+                <span class="text-danger fw-bold fs-1 lh-1">@Model.DonGia.ToString("#,##0")₫</span>
+                <span class="text-muted small mb-1 fs-6">Giá niêm yết</span>
+            </div>
+            <div class="text-muted small mt-2">
+                <i class="bi bi-info-circle"></i> Giá đã bao gồm VAT - Bảo hành chính hãng
+            </div>
+        </div>
+
+        <!-- Thông số kỹ thuật tóm tắt -->
+        <div class="mb-4">
+            <h6 class="fw-bold text-uppercase border-bottom pb-2 mb-3">Thông số nổi bật</h6>
+            <ul class="list-unstyled row small g-2">
+                @if(!string.IsNullOrEmpty(Model.MauSac)) { <li class="col-6"><i class="bi bi-palette me-2 text-secondary"></i> Màu sắc: <strong>@Model.MauSac</strong></li> }
+                @if(!string.IsNullOrEmpty(Model.BoNho)) { <li class="col-6"><i class="bi bi-sd-card me-2 text-secondary"></i> Bộ nhớ: <strong>@Model.BoNho</strong></li> }
+                @if(!string.IsNullOrEmpty(Model.Ram)) { <li class="col-6"><i class="bi bi-memory me-2 text-secondary"></i> RAM: <strong>@Model.Ram</strong></li> }
+                <li class="col-6"><i class="bi bi-shield-check me-2 text-secondary"></i> Bảo hành: <strong>24 Tháng</strong></li>
+                <li class="col-6"><i class="bi bi-box-seam me-2 text-secondary"></i> Tình trạng: <strong>Mới 100%</strong></li>
+            </ul>
+        </div>
+
+        <!-- FORM MUA HÀNG (CHỈ HIỆN KHI CÒN HÀNG VÀ CÒN HIỆU LỰC) -->
+        @if (!isOutOfStock && !isHidden)
+        {
+            <form asp-controller="GioHang" method="post">
+                <input type="hidden" name="id" value="@Model.MaHh" />
+                
+                <div class="d-flex align-items-center mb-3">
+                    <span class="me-3 fw-bold">Số lượng:</span>
+                    <div class="input-group" style="width: 120px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">-</button>
+                        <!-- Max là số lượng tồn kho -->
+                        <input type="number" name="quantity" value="1" min="1" max="@Model.SoLuong" class="form-control text-center">
+                        <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">+</button>
+                    </div>
+                    <span class="ms-3 text-muted small">(@Model.SoLuong sản phẩm có sẵn)</span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <!-- NÚT 1: MUA NGAY -> Gọi Action BuyNow -->
+                    <button type="submit" asp-action="BuyNow" class="btn btn-danger bg-gearvn flex-grow-1 py-3 fw-bold text-uppercase text-white border-0 shadow-sm transition-btn">
+                        <span class="fs-5 d-block">MUA NGAY</span>
+                        <span class="small fw-normal opacity-75">Giao tận nơi hoặc nhận tại cửa hàng</span>
+                    </button>
+                    
+                    <!-- NÚT 2: THÊM GIỎ -> Gọi Action AddToCart -->
+                    <button type="submit" asp-action="AddToCart" class="btn btn-outline-danger p-3 shadow-sm" title="Thêm vào giỏ hàng">
+                        <i class="bi bi-cart-plus fs-3"></i>
+                    </button>
+                </div>
+            </form>
+        }
+        else
+        {
+            <!-- NÚT VÔ HIỆU HÓA KHI HẾT HÀNG/ẨN -->
+            <div class="alert alert-secondary text-center p-3 mb-0 border-secondary border-opacity-25">
+                <h5 class="text-muted fw-bold mb-0">
+                    <i class="bi bi-emoji-frown me-2"></i>
+                    @(isHidden ? "SẢN PHẨM ĐÃ NGỪNG KINH DOANH" : "SẢN PHẨM TẠM HẾT HÀNG")
+                </h5>
+                <div class="small mt-1">Vui lòng quay lại sau hoặc xem các sản phẩm tương tự bên dưới.</div>
+            </div>
+            <div class="d-grid mt-3">
+                <button class="btn btn-secondary py-3 fw-bold text-uppercase disabled" disabled>
+                    <i class="bi bi-cart-x-fill me-2"></i> Không thể mua
+                </button>
+            </div>
+        }
+
+        <!-- Khuyến mãi -->
+        <div class="mt-4 border border-danger border-opacity-50 rounded p-3 position-relative bg-white shadow-sm">
+             <span class="position-absolute top-0 start-0 bg-danger text-white px-3 py-1 small fw-bold rounded-end shadow-sm" style="margin-top: -15px;">
+                <i class="bi bi-gift-fill"></i> QUÀ TẶNG ƯU ĐÃI
+            </span>
+            <ul class="list-unstyled mb-0 small mt-2 lh-lg">
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Tặng Balo Gaming cao cấp trị giá 500k.</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Giảm thêm 300k khi thanh toán qua QR Code.</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Hỗ trợ cài đặt phần mềm miễn phí trọn đời.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- PHẦN DƯỚI: MÔ TẢ CHI TIẾT & SẢN PHẨM TƯƠNG TỰ -->
+<div class="row mt-5">
+    <!-- Cột trái: Nội dung bài viết -->
+    <div class="col-md-8">
+        <div class="bg-white p-4 rounded shadow-sm border">
+            <h4 class="fw-bold border-bottom pb-3 mb-4 text-uppercase">Mô tả sản phẩm</h4>
+            <div class="content-detail" style="line-height: 1.8; color: #444;">
+                <p class="fw-bold fs-5">@Model.MoTaNgan</p>
+                @if(!string.IsNullOrEmpty(Model.MoTaChiTiet))
+                {
+                    @Html.Raw(Model.MoTaChiTiet)
+                }
+                else 
+                {
+                    <div class="alert alert-light text-center py-5">
+                        <i class="bi bi-pencil-square fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">Thông tin chi tiết đang được cập nhật...</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Sản phẩm tương tự -->
+    <div class="col-md-4 mt-4 mt-md-0">
+        <div class="bg-white p-3 rounded shadow-sm border sticky-top" style="top: 100px; z-index: 1;">
+            <h5 class="fw-bold mb-3 text-uppercase border-bottom pb-2">Sản phẩm tương tự</h5>
+            <div class="d-flex flex-column gap-3">
+                @if (sanPhamTuongTu != null && sanPhamTuongTu.Count > 0)
+                {
+                    @foreach (var item in sanPhamTuongTu)
+                    {
+                        <div class="d-flex gap-3 align-items-center border-bottom pb-2 product-item-small">
+                            <a href="/HangHoa/Detail/@item.MaHh" style="width: 80px; height: 80px;" class="d-flex align-items-center justify-content-center border rounded p-1">
+                                <img src="~/Hinh/HangHoa/@item.HinhAnh" class="img-fluid" style="max-height: 100%;" onerror="this.src='https://placehold.co/100x100'">
+                            </a>
+                            <div class="flex-grow-1">
+                                <a href="/HangHoa/Detail/@item.MaHh" class="text-decoration-none text-dark fw-bold small two-lines mb-1 hover-red">
+                                    @item.TenHh
+                                </a>
+                                <div class="text-danger fw-bold">@item.DonGia.ToString("#,##0")₫</div>
+                                <div class="text-muted small" style="font-size: 0.75rem;">
+                                    <i class="bi bi-eye"></i> @item.SoLuotXem lượt xem
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted small text-center fst-italic">Không có sản phẩm tương tự.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .two-lines {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .hover-red:hover {
+        color: var(--gearvn-red) !important;
+    }
+    .transition-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(227, 0, 25, 0.3) !important;
+    }
+</style>

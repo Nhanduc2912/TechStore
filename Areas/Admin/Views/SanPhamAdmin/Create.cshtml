@@ -1,0 +1,138 @@
+@model TechStore.Models.HangHoa
+@{
+    ViewData["Title"] = "Thêm sản phẩm mới";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="page-header">
+    <h1><i class="bi bi-plus-circle me-2"></i>Thêm sản phẩm mới</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold py-3">Thông tin sản phẩm</div>
+            <div class="card-body">
+                <form asp-action="Store" method="post" enctype="multipart/form-data">
+                    <!-- Hiển thị lỗi tổng quát -->
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="TenHh" class="form-label fw-bold">Tên sản phẩm <span class="text-danger">*</span></label>
+                        <input asp-for="TenHh" class="form-control" required placeholder="Nhập tên sản phẩm..." />
+                        <span asp-validation-for="TenHh" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MoTaNgan" class="form-label fw-bold">Mô tả ngắn</label>
+                        <textarea asp-for="MoTaNgan" class="form-control" rows="3" placeholder="Mô tả sơ lược về sản phẩm..."></textarea>
+                        <span asp-validation-for="MoTaNgan" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="MoTaChiTiet" class="form-label fw-bold">Bài viết chi tiết (HTML)</label>
+                        <textarea asp-for="MoTaChiTiet" class="form-control" rows="5" placeholder="Nội dung chi tiết..."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="GiaNhap" class="form-label fw-bold">Giá nhập</label>
+                            <input asp-for="GiaNhap" class="form-control" type="number" min="0" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DonGia" class="form-label fw-bold">Giá bán <span class="text-danger">*</span></label>
+                            <input asp-for="DonGia" class="form-control" type="number" required min="0" />
+                            <span asp-validation-for="DonGia" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="SoLuong" class="form-label fw-bold">Số lượng tồn</label>
+                            <input asp-for="SoLuong" class="form-control" type="number" min="0" value="0" />
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="MaDm" class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
+                            <select asp-for="MaDm" class="form-select" asp-items="ViewBag.Categories" required>
+                                <option value="">-- Chọn danh mục --</option>
+                            </select>
+                            <span asp-validation-for="MaDm" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                         <label asp-for="MaTh" class="form-label fw-bold">Thương hiệu</label>
+                         <select asp-for="MaTh" class="form-select" asp-items="ViewBag.Brands">
+                             <option value="">-- Chọn thương hiệu --</option>
+                         </select>
+                    </div>
+
+                    <!-- Thông số kỹ thuật -->
+                    <div class="card bg-light border-0 mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold text-secondary mb-3">Thông số kỹ thuật</h6>
+                            <div class="row">
+                                <div class="col-md-3 mb-2">
+                                    <label class="small text-muted">Màu sắc</label>
+                                    <input asp-for="MauSac" class="form-control form-control-sm" placeholder="VD: Đen" />
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <label class="small text-muted">RAM</label>
+                                    <input asp-for="Ram" class="form-control form-control-sm" placeholder="VD: 16GB" />
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <label class="small text-muted">Bộ nhớ</label>
+                                    <input asp-for="BoNho" class="form-control form-control-sm" placeholder="VD: 512GB SSD" />
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <label class="small text-muted">Hệ điều hành</label>
+                                    <input asp-for="HeDieuHanh" class="form-control form-control-sm" placeholder="VD: Windows 11" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Hình ảnh</label>
+                        <input type="file" name="hinhanh" class="form-control" accept="image/*" onchange="previewImage(this)" />
+                        <small class="text-muted">Định dạng: JPG, PNG, GIF (Tối đa 5MB)</small>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-success px-4"><i class="bi bi-plus-lg me-2"></i> Thêm mới</button>
+                        <a href="/Admin/SanPham" class="btn btn-secondary px-4"><i class="bi bi-arrow-left me-2"></i> Quay lại</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cột xem trước ảnh -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+            <div class="card-header bg-white fw-bold">Xem trước hình ảnh</div>
+            <div class="card-body text-center bg-light">
+                <img id="imgPreview" src="https://placehold.co/300x300?text=Chưa+chọn+hình" class="img-fluid rounded shadow-sm" style="max-height: 300px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imgPreview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

@@ -1,0 +1,194 @@
+@model IEnumerable<TechStore.Models.HangHoa>
+@{
+    ViewData["Title"] = "Danh sách sản phẩm";
+    
+    var currentSort = ViewBag.Sort as int?;
+    var currentMin = ViewBag.Min as double?;
+    var currentMax = ViewBag.Max as double?;
+}
+
+<!-- Breadcrumb -->
+<div class="bg-light py-3 mb-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+                @if (ViewBag.Keyword != null)
+                {
+                     <li class="breadcrumb-item active fw-bold" aria-current="page">Tìm kiếm: "@ViewBag.Keyword"</li>
+                }
+                else
+                {
+                     <li class="breadcrumb-item active fw-bold" aria-current="page">Danh sách sản phẩm</li>
+                }
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row">
+        <!-- BỘ LỌC BÊN TRÁI -->
+        <div class="col-md-3 d-none d-md-block">
+            <form asp-action="Index" method="get" id="filterForm">
+                @if(ViewBag.Keyword != null) { <input type="hidden" name="query" value="@ViewBag.Keyword" /> }
+                @if(ViewBag.Loai != null) { <input type="hidden" name="loai" value="@ViewBag.Loai" /> }
+                @if(currentSort != null) { <input type="hidden" name="sort" value="@currentSort" /> }
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold text-uppercase py-3">Danh mục</div>
+                    <div class="list-group list-group-flush">
+                        <a href="/HangHoa/Index" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == null ? "text-danger fw-bold" : "")">Tất cả sản phẩm</a>
+                        <a href="/HangHoa/Index?loai=1" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 1 ? "text-danger fw-bold" : "")">Laptop Gaming</a>
+                        <a href="/HangHoa/Index?loai=2" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 2 ? "text-danger fw-bold" : "")">Vi xử lý (CPU)</a>
+                        <a href="/HangHoa/Index?loai=3" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 3 ? "text-danger fw-bold" : "")">Card màn hình (VGA)</a>
+                        <a href="/HangHoa/Index?loai=4" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 4 ? "text-danger fw-bold" : "")">Bo mạch chủ</a>
+                        <a href="/HangHoa/Index?loai=5" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 5 ? "text-danger fw-bold" : "")">Màn hình</a>
+                        <a href="/HangHoa/Index?loai=6" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 6 ? "text-danger fw-bold" : "")">RAM & Ổ cứng</a>
+                    </div>
+                </div>
+            
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold text-uppercase py-3">Khoảng giá</div>
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="priceRange" id="p_all" value="all" 
+                                   onchange="setPrice(null, null)" @(currentMin == null && currentMax == null ? "checked" : "")>
+                            <label class="form-check-label small" for="p_all">Tất cả mức giá</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="priceRange" id="p1" value="0-10" 
+                                   onchange="setPrice(0, 10000000)" @(currentMax == 10000000 ? "checked" : "")>
+                            <label class="form-check-label small" for="p1">Dưới 10 triệu</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="priceRange" id="p2" value="10-20" 
+                                   onchange="setPrice(10000000, 20000000)" @(currentMin == 10000000 ? "checked" : "")>
+                            <label class="form-check-label small" for="p2">Từ 10 - 20 triệu</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="priceRange" id="p3" value="20-max" 
+                                   onchange="setPrice(20000000, null)" @(currentMin == 20000000 ? "checked" : "")>
+                            <label class="form-check-label small" for="p3">Trên 20 triệu</label>
+                        </div>
+
+                        <input type="hidden" name="min" id="minPrice" value="@currentMin" />
+                        <input type="hidden" name="max" id="maxPrice" value="@currentMax" />
+
+                        <button type="submit" class="btn btn-danger bg-gearvn btn-sm w-100 mt-2 fw-bold">ÁP DỤNG</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- DANH SÁCH SẢN PHẨM BÊN PHẢI -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">
+                    @if (ViewBag.Keyword != null)
+                    {
+                        <span>Kết quả cho "@ViewBag.Keyword"</span>
+                    }
+                    else
+                    {
+                        <span>Tất cả sản phẩm</span>
+                    }
+                    <span class="fs-6 text-muted fw-normal">(@Model.Count() sản phẩm)</span>
+                </h4>
+                
+                <div class="d-flex align-items-center">
+                    <label class="me-2 small text-muted text-nowrap">Sắp xếp:</label>
+                    <select class="form-select form-select-sm border-0 shadow-sm" style="width: 170px;" onchange="applySort(this.value)">
+                        <option value="0" selected="@(currentSort == 0)">Mới nhất</option>
+                        <option value="1" selected="@(currentSort == 1)">Giá tăng dần</option>
+                        <option value="2" selected="@(currentSort == 2)">Giá giảm dần</option>
+                        <option value="3" selected="@(currentSort == 3)">Xem nhiều nhất</option>
+                    </select>
+                </div>
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="row row-cols-2 row-cols-lg-3 g-3">
+                    @foreach (var item in Model)
+                    {
+                        <div class="col">
+                            <!-- FIX CSS: Thêm d-flex flex-column để card co giãn đều -->
+                            <div class="product-card h-100 d-flex flex-column position-relative">
+                                <div class="product-img-container">
+                                    <a href="/HangHoa/Detail/@item.MaHh">
+                                        <img src="~/Hinh/HangHoa/@item.HinhAnh" alt="@item.TenHh" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
+                                    </a>
+                                </div>
+                                
+                                <!-- FIX CSS: flex-grow-1 để đẩy nội dung lấp đầy khoảng trống -->
+                                <div class="p-3 d-flex flex-column flex-grow-1">
+                                    <!-- Tên sản phẩm: Giữ độ cao tối thiểu để thẳng hàng -->
+                                    <h3 class="product-title flex-shrink-0" style="min-height: 40px;">
+                                        <a href="/HangHoa/Detail/@item.MaHh" class="text-dark text-decoration-none two-lines">@item.TenHh</a>
+                                    </h3>
+                                    
+                                    <!-- FIX CSS: Thông số kỹ thuật (Cho phép xuống dòng hoặc cắt dòng đẹp hơn) -->
+                                    <div class="small text-muted mb-3">
+                                        @if(!string.IsNullOrEmpty(item.Ram)) { <span class="badge bg-light text-dark border">@item.Ram</span> }
+                                        @if(!string.IsNullOrEmpty(item.BoNho)) { <span class="badge bg-light text-dark border">@item.BoNho</span> }
+                                    </div>
+
+                                    <div class="mt-auto">
+                                        <div class="product-price mb-2 text-danger fw-bold">@item.DonGia.ToString("#,##0")₫</div>
+                                        
+                                        <a asp-controller="GioHang" asp-action="AddToCart" asp-route-id="@item.MaHh" class="btn btn-buy-now btn-sm d-block text-center text-decoration-none">
+                                            MUA NGAY
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                @if(item.SoLuotXem > 100) {
+                                    <div class="position-absolute top-0 start-0 m-2 badge bg-danger">HOT</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 bg-white rounded shadow-sm">
+                    <img src="https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/search/a60759ad1dabe909c46a817ecbf71878.png" style="width: 150px;" class="mb-3 opacity-50">
+                    <p class="text-muted fw-bold fs-5">Không tìm thấy sản phẩm nào.</p>
+                    <a href="/HangHoa/Index" class="btn btn-outline-danger px-4 mt-2">Xóa bộ lọc</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function setPrice(min, max) {
+        document.getElementById('minPrice').value = min;
+        document.getElementById('maxPrice').value = max;
+    }
+
+    function applySort(sortValue) {
+        var url = new URL(window.location.href);
+        url.searchParams.set('sort', sortValue);
+        window.location.href = url.toString();
+    }
+</script>
+
+<style>
+    .two-lines {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2; /* Chuẩn mới */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .product-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+</style>

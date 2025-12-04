@@ -1,0 +1,347 @@
+﻿@model TechStore.Models.KhachHang
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    var taiKhoan = Model?.MaTkNavigation;
+}
+
+<div class="container py-5">
+    <!-- Khu vực thông báo -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Warning"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["PassError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <i class="bi bi-x-circle-fill me-2"></i> @TempData["PassError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- SIDEBAR MENU TRÁI -->
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center pt-4 pb-3">
+                    <div class="position-relative d-inline-block mb-3">
+                        <div class="bg-gearvn text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow" style="width: 80px; height: 80px; font-size: 2rem;">
+                            @(Model?.HoTen?.Substring(0, 1).ToUpper() ?? "U")
+                        </div>
+                        <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle" title="Online">
+                            <span class="visually-hidden">Online</span>
+                        </span>
+                    </div>
+                    <h6 class="fw-bold mb-1 text-truncate">@Model?.HoTen</h6>
+                    <p class="text-muted small mb-3"><i class="bi bi-shield-check text-primary"></i> Thành viên chính thức</p>
+                </div>
+                <div class="list-group list-group-flush small fw-bold">
+                    <a href="#points" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                        <i class="bi bi-coin fs-5 me-2 align-middle text-warning"></i> Điểm tích lũy
+                    </a>
+                    <a href="#address" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                        <i class="bi bi-geo-alt fs-5 me-2 align-middle text-info"></i> Sổ địa chỉ
+                    </a>
+                    <a href="#invite" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                        <i class="bi bi-share fs-5 me-2 align-middle text-primary"></i> Mời bạn bè
+                    </a>
+                    <a href="#settings" class="list-group-item list-group-item-action py-3 border-0 active" data-bs-toggle="list">
+                        <i class="bi bi-gear fs-5 me-2 align-middle text-secondary"></i> Cài đặt tài khoản
+                    </a>
+                    <a href="/KhachHang/DangXuat" class="list-group-item list-group-item-action py-3 border-0 text-danger">
+                        <i class="bi bi-box-arrow-right fs-5 me-2 align-middle"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- NỘI DUNG PHẢI -->
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm" style="min-height: 500px;">
+                <div class="card-body p-4">
+                    <div class="tab-content">
+                        
+                        <!-- TAB 1: ĐIỂM TÍCH LŨY -->
+                        <div class="tab-pane fade" id="points">
+                            <h5 class="fw-bold mb-4 pb-2 border-bottom text-uppercase">Điểm thưởng TechStore</h5>
+                            <div class="text-center py-5">
+                                <div class="display-1 text-warning mb-3"><i class="bi bi-piggy-bank"></i></div>
+                                <h2 class="fw-bold text-secondary">@Model?.DiemTichLuy điểm</h2>
+                                <p class="text-muted">Tích lũy thêm điểm khi mua hàng để đổi các phần quà hấp dẫn!</p>
+                                <a href="/" class="btn btn-outline-warning mt-2">Mua sắm ngay để tích điểm</a>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: SỔ ĐỊA CHỈ -->
+                        <div class="tab-pane fade" id="address">
+                            <h5 class="fw-bold mb-4 pb-2 border-bottom text-uppercase">Địa chỉ nhận hàng</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted small">Địa chỉ mặc định sẽ được sử dụng khi thanh toán.</span>
+                                <button class="btn btn-danger bg-gearvn btn-sm"><i class="bi bi-plus-lg"></i> Thêm địa chỉ mới</button>
+                            </div>
+                            
+                            <div class="border rounded p-3 mb-3 position-relative bg-light">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <span class="fw-bold text-dark">@Model?.HoTen</span>
+                                        <span class="text-muted mx-2">|</span>
+                                        <span class="text-muted">@taiKhoan?.Sdt</span>
+                                    </div>
+                                    <span class="badge bg-danger">Mặc định</span>
+                                </div>
+                                <div class="mt-2 text-secondary">
+                                    @(string.IsNullOrEmpty(Model?.DiaChi) ? "Chưa cập nhật địa chỉ" : Model.DiaChi)
+                                </div>
+                                <div class="mt-2 text-muted small">Việt Nam</div>
+                                <div class="mt-3">
+                                    <button class="btn btn-link text-decoration-none p-0 me-3 text-danger small fw-bold">Cập nhật</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: MỜI BẠN BÈ -->
+                        <div class="tab-pane fade" id="invite">
+                            <h5 class="fw-bold mb-4 pb-2 border-bottom text-uppercase">Mời bạn bè</h5>
+                            <div class="text-center py-4">
+                                <img src="https://cdn-icons-png.flaticon.com/512/3893/3893269.png" style="width: 120px;" class="mb-3 opacity-75">
+                                <h5>Chia sẻ niềm vui - Nhận quà liền tay</h5>
+                                <p class="text-muted small">Giới thiệu bạn bè đăng ký tài khoản để cả hai cùng nhận Voucher 50k.</p>
+                                
+                                <div class="input-group w-75 mx-auto mt-4">
+                                    <input type="text" class="form-control text-center fw-bold text-primary" value="TECHSTORE-@(Model?.MaKh)XYS" readonly>
+                                    <button class="btn btn-primary" onclick="alert('Đã sao chép mã!')"><i class="bi bi-clipboard"></i> Copy</button>
+                                </div>
+                                
+                                <div class="d-flex justify-content-center gap-3 mt-4">
+                                    <button class="btn btn-outline-primary rounded-circle" style="width: 50px; height: 50px;"><i class="bi bi-facebook"></i></button>
+                                    <button class="btn btn-outline-info rounded-circle" style="width: 50px; height: 50px;"><i class="bi bi-messenger"></i></button>
+                                    <button class="btn btn-outline-danger rounded-circle" style="width: 50px; height: 50px;"><i class="bi bi-envelope"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 4: CÀI ĐẶT (TỔNG HỢP) -->
+                        <div class="tab-pane fade show active" id="settings">
+                            <h5 class="fw-bold mb-4 pb-2 border-bottom text-uppercase">Cài đặt</h5>
+                            
+                            <!-- MENU CON CỦA CÀI ĐẶT -->
+                            <div class="accordion" id="accordionSettings">
+                                
+                                <!-- 1. Cài đặt bảo mật & Hồ sơ -->
+                                <div class="accordion-item border-0 shadow-sm mb-3">
+                                    <h2 class="accordion-header" id="headingSecurity">
+                                        <button class="accordion-button fw-bold bg-light text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecurity" aria-expanded="true" aria-controls="collapseSecurity">
+                                            <i class="bi bi-shield-lock-fill me-2 text-success"></i> Cài đặt bảo mật & Hồ sơ
+                                        </button>
+                                    </h2>
+                                    <div id="collapseSecurity" class="accordion-collapse collapse show" aria-labelledby="headingSecurity" data-bs-parent="#accordionSettings">
+                                        <div class="accordion-body">
+                                            <!-- Form Cập nhật thông tin cơ bản -->
+                                            <form asp-action="UpdateProfile" method="post" class="mb-4">
+                                                <h6 class="fw-bold text-muted text-uppercase small mb-3">Thông tin định danh</h6>
+                                                <div class="row mb-3 align-items-center">
+                                                    <label class="col-md-3 col-form-label text-muted text-end">Tên hiển thị</label>
+                                                    <div class="col-md-9">
+                                                        <input type="text" name="HoTen" class="form-control" value="@Model?.HoTen" required>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3 align-items-center">
+                                                    <label class="col-md-3 col-form-label text-muted text-end">Ngày sinh</label>
+                                                    <div class="col-md-9">
+                                                        <input type="date" name="NgaySinh" class="form-control w-50" value="@(Model?.NgaySinh?.ToString("yyyy-MM-dd"))">
+                                                    </div>
+                                                </div>
+                                                <div class="text-end mb-4">
+                                                    <button type="submit" class="btn btn-sm btn-primary px-3">Lưu thay đổi hồ sơ</button>
+                                                </div>
+                                            </form>
+
+                                            <hr class="my-4 border-secondary opacity-25">
+
+                                            <!-- Khu vực Email & SĐT (Xác thực) -->
+                                            <h6 class="fw-bold text-muted text-uppercase small mb-3">Thông tin liên lạc & Xác thực</h6>
+                                            
+                                            <div class="row mb-3 align-items-center">
+                                                <label class="col-md-3 col-form-label text-muted text-end">Email</label>
+                                                <div class="col-md-9">
+                                                    <div class="input-group">
+                                                        <input type="text" id="profileEmail" class="form-control" value="@taiKhoan?.Email" readonly>
+                                                        @if (taiKhoan?.EmailDaXacThuc == true) {
+                                                            <span class="input-group-text bg-success text-white border-0 small fw-bold" title="Đã xác thực"><i class="bi bi-check-circle-fill"></i></span>
+                                                        } else {
+                                                            <button type="button" class="btn btn-warning fw-bold" onclick="sendOtp('email')">Xác thực</button>
+                                                        }
+                                                    </div>
+                                                    <!-- Ô nhập OTP ẩn -->
+                                                    <div id="otpInputEmail" class="mt-2 d-none input-group input-group-sm w-75">
+                                                        <input type="text" id="otpCodeEmail" class="form-control" placeholder="Nhập mã OTP vừa nhận">
+                                                        <button class="btn btn-primary" onclick="verifyOtp('email')">Gửi</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-3 align-items-center">
+                                                <label class="col-md-3 col-form-label text-muted text-end">Số điện thoại</label>
+                                                <div class="col-md-9">
+                                                    <div class="input-group">
+                                                        <input type="text" id="profilePhone" class="form-control" value="@taiKhoan?.Sdt" readonly>
+                                                        @if (taiKhoan?.SDTDaXacThuc == true) {
+                                                            <span class="input-group-text bg-success text-white border-0 small fw-bold" title="Đã xác thực"><i class="bi bi-check-circle-fill"></i></span>
+                                                        } else {
+                                                            <button type="button" class="btn btn-warning fw-bold" onclick="sendOtp('phone')">Xác thực</button>
+                                                        }
+                                                    </div>
+                                                    <div id="otpInputPhone" class="mt-2 d-none input-group input-group-sm w-75">
+                                                        <input type="text" id="otpCodePhone" class="form-control" placeholder="Nhập mã OTP vừa nhận">
+                                                        <button class="btn btn-primary" onclick="verifyOtp('phone')">Gửi</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr class="my-4 border-secondary opacity-25">
+
+                                            <!-- Đổi mật khẩu -->
+                                            <h6 class="fw-bold text-muted text-uppercase small mb-3">Bảo mật đăng nhập</h6>
+                                            <div class="row mb-3 align-items-center">
+                                                <label class="col-md-3 col-form-label text-muted text-end">Mật khẩu</label>
+                                                <div class="col-md-9 d-flex align-items-center">
+                                                    <input type="password" class="form-control bg-light me-2" value="********" readonly style="max-width: 200px;">
+                                                    <button class="btn btn-outline-danger btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePassword">
+                                                        <i class="bi bi-pencil-square"></i> Đổi mật khẩu
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Form Đổi mật khẩu (Ẩn/Hiện) -->
+                                            <div class="collapse mt-3" id="collapsePassword">
+                                                <div class="card card-body bg-light border-0">
+                                                    <form asp-action="ChangePassword" method="post">
+                                                        <div class="mb-2">
+                                                            <label class="form-label small fw-bold">Mật khẩu hiện tại</label>
+                                                            <input type="password" name="OldPass" class="form-control" required>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <label class="form-label small fw-bold">Mật khẩu mới</label>
+                                                            <input type="password" name="NewPass" class="form-control" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold">Xác nhận mật khẩu mới</label>
+                                                            <input type="password" name="ConfirmPass" class="form-control" required>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-danger bg-gearvn w-100">Lưu mật khẩu mới</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 2. Chính sách bảo mật -->
+                                <div class="accordion-item border-0 shadow-sm mb-3">
+                                    <h2 class="accordion-header" id="headingPrivacy">
+                                        <button class="accordion-button collapsed fw-bold bg-light text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrivacy" aria-expanded="false" aria-controls="collapsePrivacy">
+                                            <i class="bi bi-file-earmark-lock2 me-2 text-primary"></i> Chính sách bảo mật
+                                        </button>
+                                    </h2>
+                                    <div id="collapsePrivacy" class="accordion-collapse collapse" aria-labelledby="headingPrivacy" data-bs-parent="#accordionSettings">
+                                        <div class="accordion-body small text-secondary">
+                                            <p>TechStore cam kết bảo mật thông tin cá nhân của bạn...</p>
+                                            <p>1. Chúng tôi chỉ thu thập thông tin cần thiết để xử lý đơn hàng.</p>
+                                            <p>2. Thông tin của bạn được mã hóa và lưu trữ an toàn.</p>
+                                            <p>3. Chúng tôi không chia sẻ thông tin với bên thứ 3 trừ khi có yêu cầu pháp lý.</p>
+                                            <a href="#" class="text-decoration-none">Xem chi tiết toàn văn &rarr;</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 3. Điều khoản sử dụng -->
+                                <div class="accordion-item border-0 shadow-sm">
+                                    <h2 class="accordion-header" id="headingTerms">
+                                        <button class="accordion-button collapsed fw-bold bg-light text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTerms" aria-expanded="false" aria-controls="collapseTerms">
+                                            <i class="bi bi-journal-text me-2 text-warning"></i> Điều khoản sử dụng
+                                        </button>
+                                    </h2>
+                                    <div id="collapseTerms" class="accordion-collapse collapse" aria-labelledby="headingTerms" data-bs-parent="#accordionSettings">
+                                        <div class="accordion-body small text-secondary">
+                                            <p>Khi sử dụng dịch vụ của TechStore, bạn đồng ý với các điều khoản sau:</p>
+                                            <p>1. Không sử dụng tài khoản để gian lận, spam.</p>
+                                            <p>2. Tuân thủ các quy định về thanh toán và nhận hàng.</p>
+                                            <a href="#" class="text-decoration-none">Xem chi tiết &rarr;</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT XỬ LÝ OTP (Giữ nguyên logic cũ nhưng update ID nếu cần) -->
+<script>
+    function sendOtp(type) {
+        var value = (type === 'email') ? $('#profileEmail').val() : $('#profilePhone').val();
+        if (!value) { alert("Dữ liệu trống!"); return; }
+
+        $.ajax({
+            url: '/KhachHang/SendOtp',
+            type: 'POST',
+            data: { type: type, value: value },
+            success: function (res) {
+                alert(res.message);
+                if (res.success) {
+                    if (type === 'email') $('#otpInputEmail').removeClass('d-none');
+                    else $('#otpInputPhone').removeClass('d-none');
+                }
+            }
+        });
+    }
+
+    function verifyOtp(type) {
+        var value = (type === 'email') ? $('#profileEmail').val() : $('#profilePhone').val();
+        var code = (type === 'email') ? $('#otpCodeEmail').val() : $('#otpCodePhone').val();
+
+        $.ajax({
+            url: '/KhachHang/VerifyOtp',
+            type: 'POST',
+            data: { type: type, value: value, code: code },
+            success: function (res) {
+                alert(res.message);
+                if (res.success) {
+                    location.reload();
+                }
+            }
+        });
+    }
+</script>
+
+<style>
+    /* Tùy chỉnh thanh menu bên trái */
+    .list-group-item {
+        transition: all 0.2s;
+    }
+    .list-group-item.active {
+        background-color: #fff;
+        color: var(--gearvn-red);
+        border-left: 4px solid var(--gearvn-red) !important;
+        font-weight: bold;
+    }
+    .list-group-item:hover:not(.active) {
+        background-color: #f8f9fa;
+        color: var(--gearvn-red);
+    }
+</style>

@@ -1,0 +1,251 @@
+@model IEnumerable<TechStore.Models.HangHoa>
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-secondary"><i class="bi bi-box-seam me-2"></i>QUẢN LÝ SẢN PHẨM</h3>
+    <a href="/Admin/SanPham/Create" class="btn btn-success shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm
+    </a>
+</div>
+
+<!-- ALERTS (Thông báo trạng thái) -->
+<!-- Alert cho chức năng Toggle Status (AJAX) -->
+<div id="statusAlert" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+    <i class="bi bi-check-circle me-2"></i> <span id="statusMessage"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- BỘ LỌC -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Nhập tên sản phẩm..." value="@ViewBag.Search">
+            </div>
+            <div class="col-md-3">
+                <select name="category" class="form-select" asp-items="ViewBag.Categories">
+                    <option value="0">-- Tất cả danh mục --</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Tìm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- BẢNG DỮ LIỆU -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <div class="row align-items-center">
+            <div class="col">
+                <strong class="text-primary">Danh sách sản phẩm</strong>
+            </div>
+            <div class="col-auto">
+                <span class="text-muted small">Tổng: @ViewBag.TotalProducts sản phẩm</span>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Hình</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá bán</th>
+                        <th>Tồn kho</th>
+                        <th>Đã bán</th> <!-- Cột Mới -->
+                        <th>Trạng thái</th> <!-- Cột Mới -->
+                        <th class="text-end pe-4">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                    {
+                                        <img src="~/Hinh/HangHoa/@item.HinhAnh" style="width: 50px; height: 50px; object-fit: cover;" class="rounded border" onerror="this.src='https://placehold.co/50x50?text=No+Img'">
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary p-2">No Img</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-truncate" style="max-width: 250px;" title="@item.TenHh">@item.TenHh</div>
+                                    <small class="text-muted">ID: #@item.MaHh | @(item.MaDmNavigation?.TenDm ?? "N/A")</small>
+                                </td>
+                                <td class="fw-bold text-danger">@item.DonGia.ToString("#,##0")₫</td>
+                                <td>
+                                    @if ((item.SoLuong ?? 0) > 0) 
+                                    { 
+                                        <span class="text-success fw-bold">@item.SoLuong</span> 
+                                    }
+                                    else 
+                                    { 
+                                        <span class="text-danger fw-bold bg-danger bg-opacity-10 px-2 py-1 rounded small">Hết hàng</span> 
+                                    }
+                                </td>
+                                
+                                <!-- HIỂN THỊ SỐ LƯỢNG ĐÃ BÁN -->
+                                <td>
+                                    <span class="badge bg-info text-dark border border-info bg-opacity-25">
+                                        <i class="bi bi-cart-check-fill me-1"></i>
+                                        @(item.ChiTietHoaDons?.Sum(c => c.SoLuong) ?? 0)
+                                    </span>
+                                </td>
+
+                                <!-- SWITCH TRẠNG THÁI (AJAX) -->
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input cursor-pointer" type="checkbox" role="switch" 
+                                               id="switch-@item.MaHh" 
+                                               @(item.HieuLuc == true ? "checked" : "") 
+                                               onchange="toggleStatus(@item.MaHh)">
+                                        <label class="form-check-label small text-muted user-select-none" for="switch-@item.MaHh">
+                                            @(item.HieuLuc == true ? "Hiện" : "Ẩn")
+                                        </label>
+                                    </div>
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="/Admin/SanPham/Detail/@item.MaHh" class="btn btn-info text-white" title="Chi tiết"><i class="bi bi-eye"></i></a>
+                                        <a href="/Admin/SanPham/Edit/@item.MaHh" class="btn btn-warning" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                        <button class="btn btn-danger" onclick="deleteProduct(@item.MaHh)" title="Xóa"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="8" class="text-center py-5 text-muted fst-italic">Không tìm thấy sản phẩm nào phù hợp.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Phân trang -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="card-footer bg-white py-3">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search&category=@ViewBag.Category">Trước</a>
+                    </li>
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@i&search=@ViewBag.Search&category=@ViewBag.Category">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search&category=@ViewBag.Category">Sau</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Hàm Xóa Sản phẩm (Có xử lý lỗi ràng buộc)
+        function deleteProduct(id) {
+            if (confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa sản phẩm này không?')) {
+                $.ajax({
+                    url: '/Admin/SanPham/Delete/' + id,
+                    type: 'POST',
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            location.reload();
+                        } else {
+                            alert("Lỗi: " + res.message);
+                        }
+                    },
+                    error: function() { 
+                        alert('Đã có lỗi xảy ra khi kết nối tới máy chủ.');
+                    }
+                });
+            }
+        }
+
+        // Hàm Bật/Tắt Trạng thái (Switch)
+        function toggleStatus(id) {
+            $.ajax({
+                url: '/Admin/SanPham/ToggleStatus/' + id,
+                type: 'POST',
+                success: function(res) {
+                    if(res.success) {
+                        // Cập nhật text label bên cạnh switch
+                        var label = document.querySelector(`label[for="switch-${id}"]`);
+                        if(label) {
+                            label.innerText = label.innerText.trim() === "Hiện" ? "Ẩn" : "Hiện";
+                        }
+                        
+                        // Hiện thông báo thành công (Toast)
+                        $('#statusMessage').text(res.message);
+                        $('#statusAlert').removeClass('d-none').addClass('show');
+                        
+                        // Tự ẩn sau 2 giây
+                        setTimeout(function() {
+                            $('#statusAlert').removeClass('show').addClass('d-none');
+                        }, 2000);
+                    } else {
+                        alert("Lỗi: " + res.message);
+                        // Revert trạng thái checkbox nếu lỗi
+                        var checkbox = document.getElementById('switch-' + id);
+                        checkbox.checked = !checkbox.checked;
+                    }
+                },
+                error: function() {
+                    alert("Lỗi kết nối server! Vui lòng thử lại.");
+                    // Revert trạng thái checkbox
+                    var checkbox = document.getElementById('switch-' + id);
+                    checkbox.checked = !checkbox.checked;
+                }
+            });
+        }
+    </script>
+}
+
+<style>
+    .cursor-pointer { cursor: pointer; }
+    /* Style cho Switch Bootstrap đẹp hơn */
+    .form-switch .form-check-input {
+        width: 2.5em;
+        height: 1.25em;
+        cursor: pointer;
+    }
+    .form-switch .form-check-input:checked {
+        background-color: var(--success-color, #198754);
+        border-color: var(--success-color, #198754);
+    }
+</style>
