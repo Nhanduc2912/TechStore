@@ -96,17 +96,16 @@
             </ul>
         </div>
 
-        <!-- FORM MUA HÀNG (CHỈ HIỆN KHI CÒN HÀNG VÀ CÒN HIỆU LỰC) -->
+        <!-- FORM MUA HÀNG (ĐÃ FIX LỖI ROUTING) -->
         @if (!isOutOfStock && !isHidden)
         {
-            <form asp-controller="GioHang" method="post">
+            <form method="post">
                 <input type="hidden" name="id" value="@Model.MaHh" />
                 
                 <div class="d-flex align-items-center mb-3">
                     <span class="me-3 fw-bold">Số lượng:</span>
                     <div class="input-group" style="width: 120px;">
                         <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">-</button>
-                        <!-- Max là số lượng tồn kho -->
                         <input type="number" name="quantity" value="1" min="1" max="@Model.SoLuong" class="form-control text-center">
                         <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">+</button>
                     </div>
@@ -114,14 +113,16 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <!-- NÚT 1: MUA NGAY -> Gọi Action BuyNow -->
-                    <button type="submit" asp-action="BuyNow" class="btn btn-danger bg-gearvn flex-grow-1 py-3 fw-bold text-uppercase text-white border-0 shadow-sm transition-btn">
+                    <!-- SỬA LỖI TẠI ĐÂY: Thêm asp-controller="GioHang" vào từng nút -->
+                    
+                    <!-- NÚT 1: MUA NGAY -> Gọi Action BuyNow của GioHang -->
+                    <button type="submit" asp-controller="GioHang" asp-action="BuyNow" class="btn btn-danger bg-gearvn flex-grow-1 py-3 fw-bold text-uppercase text-white border-0 shadow-sm transition-btn">
                         <span class="fs-5 d-block">MUA NGAY</span>
                         <span class="small fw-normal opacity-75">Giao tận nơi hoặc nhận tại cửa hàng</span>
                     </button>
                     
-                    <!-- NÚT 2: THÊM GIỎ -> Gọi Action AddToCart -->
-                    <button type="submit" asp-action="AddToCart" class="btn btn-outline-danger p-3 shadow-sm" title="Thêm vào giỏ hàng">
+                    <!-- NÚT 2: THÊM GIỎ -> Gọi Action AddToCart của GioHang -->
+                    <button type="submit" asp-controller="GioHang" asp-action="AddToCart" class="btn btn-outline-danger p-3 shadow-sm" title="Thêm vào giỏ hàng">
                         <i class="bi bi-cart-plus fs-3"></i>
                     </button>
                 </div>

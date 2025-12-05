@@ -1,0 +1,182 @@
+@model IEnumerable<TechStore.Models.HoaDon>
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-secondary"><i class="bi bi-receipt me-2"></i>QUẢN LÝ ĐƠN HÀNG</h3>
+    <a href="/Admin/DonHang/Export" class="btn btn-outline-success btn-sm shadow-sm">
+        <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+    </a>
+</div>
+
+<!-- BỘ LỌC TÌM KIẾM -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <!-- Tìm kiếm từ khóa -->
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control border-start-0" placeholder="Mã đơn, tên khách, SĐT..." value="@ViewBag.Search">
+                </div>
+            </div>
+            
+            <!-- Lọc theo trạng thái -->
+            <div class="col-md-4">
+                <!-- SỬA LỖI: Dùng value -99 cho 'Tất cả' để tránh trùng với -1 (Đã hủy) -->
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="-99">-- Tất cả trạng thái --</option>
+                    @if (ViewBag.Statuses != null)
+                    {
+                        foreach (var item in (SelectList)ViewBag.Statuses)
+                        {
+                            /* Giữ lại trạng thái đang chọn */
+                            if (ViewBag.SelectedStatus != null && item.Value == ViewBag.SelectedStatus.ToString())
+                            {
+                                <option value="@item.Value" selected>@item.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            
+            <!-- Nút lọc -->
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="bi bi-funnel"></i> Lọc dữ liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- BẢNG DANH SÁCH ĐƠN HÀNG -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <div class="row align-items-center">
+            <div class="col">
+                <strong class="text-primary">Danh sách đơn hàng</strong>
+            </div>
+            <div class="col-auto">
+                <span class="text-muted small">Tổng: @(ViewBag.TotalOrders ?? 0) đơn hàng</span>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary">
+                    <tr>
+                        <th class="ps-4">Mã ĐH</th>
+                        <th>Khách hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            // Tính tổng tiền an toàn (xử lý null)
+                            var tongTien = item.ChiTietHoaDons?.Sum(ct => ct.DonGia * ct.SoLuong) ?? 0;
+                            
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-bold text-primary">#@item.MaHd</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">
+                                        @(item.HoTenNguoiNhan ?? item.MaKhNavigation?.HoTen ?? "Khách vãng lai")
+                                    </div>
+                                    <div class="small text-muted">
+                                        <i class="bi bi-telephone-fill me-1" style="font-size: 0.8rem;"></i> 
+                                        @(item.SdtnguoiNhan ?? "N/A")
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>@item.NgayDat?.ToString("dd/MM/yyyy")</div>
+                                    <div class="small text-muted">@item.NgayDat?.ToString("HH:mm")</div>
+                                </td>
+                                <td class="text-danger fw-bold">
+                                    @tongTien.ToString("#,##0")₫
+                                </td>
+                                <td>
+                                    @{
+                                        var statusName = item.MaTrangThaiNavigation?.TenTrangThai ?? "N/A";
+                                        var badgeClass = item.MaTrangThai switch {
+                                            0 => "bg-warning text-dark", // Mới đặt
+                                            1 => "bg-info text-dark",    // Đã duyệt
+                                            2 => "bg-primary",           // Đang giao
+                                            3 => "bg-success",           // Hoàn thành
+                                            -1 => "bg-secondary",        // Đã hủy
+                                            _ => "bg-light text-dark"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass px-2 py-1">@statusName</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <a href="/Admin/DonHang/Detail/@item.MaHd" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                            <i class="bi bi-eye-fill"></i> Xem
+                                        </a>
+                                        <a href="/Admin/DonHang/Invoice/@item.MaHd" class="btn btn-sm btn-outline-secondary" title="In hóa đơn">
+                                            <i class="bi bi-printer"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
+                                Không tìm thấy đơn hàng nào phù hợp.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- PHÂN TRANG -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="card-footer bg-white py-3">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    <!-- Nút Trước -->
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)&status=@ViewBag.SelectedStatus&search=@ViewBag.Search">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- Các trang -->
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@i&status=@ViewBag.SelectedStatus&search=@ViewBag.Search">@i</a>
+                        </li>
+                    }
+
+                    <!-- Nút Sau -->
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)&status=@ViewBag.SelectedStatus&search=@ViewBag.Search">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

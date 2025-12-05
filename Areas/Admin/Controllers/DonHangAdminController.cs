@@ -25,22 +25,25 @@ namespace TechStore.Areas.Admin.Controllers
         [Route("")]
         [Route("index")]
         [HttpGet]
-        public async Task<IActionResult> Index(int status = -1, int page = 1, string search = "")
+        public async Task<IActionResult> Index(int status = -99, int page = 1, string search = "")
         {
+            // status = -99 là mã mặc định cho "Tất cả" (để tránh trùng với -1 là "Hủy")
             const int pageSize = 10;
+            
             var query = _db.HoaDons
                 .Include(h => h.MaKhNavigation)
                 .Include(h => h.MaTrangThaiNavigation)
+                .Include(h => h.ChiTietHoaDons) // Include cái này để tính tổng tiền không bị 0
                 .AsQueryable();
 
-            // Lọc theo trạng thái
-            if (status >= 0)
+            // Lọc theo trạng thái (Chỉ lọc khi status khác -99)
+            if (status != -99)
             {
                 query = query.Where(h => h.MaTrangThai == status);
-                ViewBag.SelectedStatus = status;
             }
+            ViewBag.SelectedStatus = status;
 
-            // Tìm kiếm an toàn (Null check)
+            // Tìm kiếm
             if (!string.IsNullOrEmpty(search))
             {
                 query = query.Where(h => h.MaHd.ToString().Contains(search) || 
@@ -58,7 +61,7 @@ namespace TechStore.Areas.Admin.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            ViewBag.Statuses = new SelectList(await _db.TrangThaiDonHangs.ToListAsync(), "MaTrangThai", "TenTrangThai");
+            ViewBag.Statuses = new SelectList(await _db.TrangThaiDonHangs.ToListAsync(), "MaTrangThai", "TenTrangThai", status);
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalOrders = totalOrders;
@@ -77,9 +80,13 @@ namespace TechStore.Areas.Admin.Controllers
                     .ThenInclude(ct => ct.MaHhNavigation)
                 .FirstOrDefaultAsync(h => h.MaHd == id);
 
-            if (order == null) return NotFound(); 
+            if (order == null) return NotFound();
 
             ViewBag.TongTien = order.ChiTietHoaDons.Sum(ct => ct.DonGia * ct.SoLuong);
+            
+            // Danh sách trạng thái để sửa nhanh tại trang chi tiết
+            ViewBag.Statuses = new SelectList(await _db.TrangThaiDonHangs.ToListAsync(), "MaTrangThai", "TenTrangThai", order.MaTrangThai);
+            
             return View(order);
         }
 
@@ -104,6 +111,28 @@ namespace TechStore.Areas.Admin.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        [Route("invoice/{id}")]
+        [HttpGet]
+        public async Task<IActionResult> Invoice(int id)
+        {
+            var order = await _db.HoaDons
+                .Include(h => h.MaKhNavigation)
+                .Include(h => h.ChiTietHoaDons)
+                    .ThenInclude(ct => ct.MaHhNavigation)
+                .FirstOrDefaultAsync(h => h.MaHd == id);
+
+            if (order == null) return NotFound();
+            return View(order);
+        }
+
+        [Route("export")]
+        [HttpGet]
+        public IActionResult Export()
+        {
+            TempData["Info"] = "Tính năng export đang phát triển!";
+            return RedirectToAction("Index");
         }
     }
 }

@@ -336,3 +336,4 @@ D:\C#\ASP.NET\TechStore\TechStore\obj\Debug\net9.0\TechStore.pdb
 D:\C#\ASP.NET\TechStore\TechStore\obj\Debug\net9.0\TechStore.genruntimeconfig.cache
 D:\C#\ASP.NET\TechStore\TechStore\obj\Debug\net9.0\ref\TechStore.dll
 D:\C#\ASP.NET\TechStore\TechStore\obj\Debug\net9.0\compressed\njbfbagnro-gkguqwgfi6.gz
+D:\C#\ASP.NET\TechStore\TechStore\obj\Debug\net9.0\TechStore.sourcelink.json
