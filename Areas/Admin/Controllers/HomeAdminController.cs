@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TechStore.Data;
-using TechStore.Models; // Thêm namespace này để dùng Model nếu cần
 using TechStore.Areas.Admin.Attributes;
 using System;
 using System.Linq;
@@ -25,24 +24,22 @@ namespace TechStore.Areas.Admin.Controllers
 
         [Route("")]
         [Route("index")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string period = "week")
         {
             try
             {
-                // 1. Thống kê số lượng
+                // --- 1. THỐNG KÊ CƠ BẢN (STATS CARDS) ---
                 ViewBag.TongSanPham = await _db.HangHoas.CountAsync();
                 ViewBag.TongKhachHang = await _db.KhachHangs.CountAsync();
                 ViewBag.TongDonHang = await _db.HoaDons.CountAsync();
-                
-                // 2. Tính tổng doanh thu
-                var doanhThu = await _db.ChiTietHoaDons.SumAsync(ct => ct.DonGia * ct.SoLuong);
-                ViewBag.DoanhThu = doanhThu;
+                ViewBag.DoanhThu = await _db.ChiTietHoaDons.SumAsync(ct => ct.DonGia * ct.SoLuong);
 
-                // 3. Dữ liệu biểu đồ doanh thu
+                // --- 2. BIỂU ĐỒ DOANH THU (LINE CHART) ---
+                // Logic lọc theo thời gian (Demo: Mặc định 7 ngày qua)
                 var today = DateTime.Today;
                 var sevenDaysAgo = today.AddDays(-6);
                 
-                var rawData = await _db.HoaDons
+                var revenueData = await _db.HoaDons
                     .Where(h => h.NgayDat >= sevenDaysAgo)
                     .SelectMany(h => h.ChiTietHoaDons)
                     .Select(ct => new { 
@@ -51,38 +48,80 @@ namespace TechStore.Areas.Admin.Controllers
                     })
                     .ToListAsync();
 
-                var revenueGrouped = rawData
+                var revenueGrouped = revenueData
                     .GroupBy(x => x.Date.HasValue ? x.Date.Value.Date : DateTime.MinValue)
                     .Select(g => new { Date = g.Key, Revenue = g.Sum(x => x.Total) })
                     .ToList();
 
                 var labels = new List<string>();
-                var data = new List<double>();
+                var dataRevenue = new List<double>();
 
                 for (int i = 0; i < 7; i++)
                 {
                     var date = sevenDaysAgo.AddDays(i);
                     labels.Add(date.ToString("dd/MM"));
                     var record = revenueGrouped.FirstOrDefault(r => r.Date == date);
-                    data.Add(record != null ? record.Revenue : 0);
+                    dataRevenue.Add(record != null ? record.Revenue : 0);
                 }
 
-                ViewBag.ChartLabels = System.Text.Json.JsonSerializer.Serialize(labels);
-                ViewBag.ChartData = System.Text.Json.JsonSerializer.Serialize(data);
+                ViewBag.RevenueLabels = System.Text.Json.JsonSerializer.Serialize(labels);
+                ViewBag.RevenueData = System.Text.Json.JsonSerializer.Serialize(dataRevenue);
 
-                // 4. Top 5 sản phẩm bán chạy (SỬA LỖI TẠI ĐÂY)
-                var topProducts = await _db.ChiTietHoaDons
-                    .GroupBy(ct => ct.MaHh)
-                    .Select(g => new {
-                        // Đổi Name -> TenHh, Sold -> SoLuong cho đồng bộ
-                        TenHh = g.First().MaHhNavigation != null ? g.First().MaHhNavigation!.TenHh : "Unknown",
-                        SoLuong = g.Sum(x => x.SoLuong)
-                    })
-                    .OrderByDescending(x => x.SoLuong) // Sắp xếp theo SoLuong
-                    .Take(5)
+                // --- 3. BIỂU ĐỒ TRẠNG THÁI ĐƠN HÀNG (PIE CHART) ---
+                var orderStats = await _db.HoaDons
+                    .GroupBy(h => h.MaTrangThai)
+                    .Select(g => new { Status = g.Key, Count = g.Count() })
                     .ToListAsync();
                 
-                ViewBag.TopProducts = topProducts;
+                // Mapping trạng thái: 0: Mới, 1: Duyệt, 2: Giao, 3: Xong, -1: Hủy
+                var pieData = new int[5]; // [Mới, Duyệt, Giao, Xong, Hủy]
+                foreach(var item in orderStats)
+                {
+                    if (item.Status == 0) pieData[0] = item.Count;
+                    else if (item.Status == 1) pieData[1] = item.Count;
+                    else if (item.Status == 2) pieData[2] = item.Count;
+                    else if (item.Status == 3) pieData[3] = item.Count;
+                    else if (item.Status == -1) pieData[4] = item.Count;
+                }
+                ViewBag.PieData = System.Text.Json.JsonSerializer.Serialize(pieData);
+
+                // --- 4. CÁC WIDGETS DỮ LIỆU ---
+                
+                // Top 5 Sản phẩm bán chạy
+                ViewBag.TopProducts = await _db.ChiTietHoaDons
+                    .GroupBy(ct => ct.MaHh)
+                    .Select(g => new {
+                        Name = g.First().MaHhNavigation != null ? g.First().MaHhNavigation!.TenHh : "Unknown",
+                        Img = g.First().MaHhNavigation != null ? g.First().MaHhNavigation!.HinhAnh : "",
+                        Sold = g.Sum(x => x.SoLuong),
+                        Revenue = g.Sum(x => x.DonGia * x.SoLuong)
+                    })
+                    .OrderByDescending(x => x.Sold)
+                    .Take(5)
+                    .ToListAsync();
+
+                // Đơn hàng mới cần xử lý (Trạng thái = 0)
+                ViewBag.NewOrders = await _db.HoaDons
+                    .Include(h => h.MaKhNavigation)
+                    .Include(h => h.ChiTietHoaDons)
+                    .Where(h => h.MaTrangThai == 0)
+                    .OrderByDescending(h => h.NgayDat)
+                    .Take(15)
+                    .ToListAsync();
+
+                // Khách hàng mới (5 người gần nhất)
+                ViewBag.NewCustomers = await _db.KhachHangs
+                    .Include(k => k.MaTkNavigation)
+                    .OrderByDescending(k => k.MaKh)
+                    .Take(5)
+                    .ToListAsync();
+
+                // Cảnh báo tồn kho (Dưới 10 sản phẩm)
+                ViewBag.LowStock = await _db.HangHoas
+                    .Where(p => p.SoLuong < 10 && p.HieuLuc == true)
+                    .OrderBy(p => p.SoLuong)
+                    .Take(5)
+                    .ToListAsync();
 
                 return View();
             }

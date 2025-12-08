@@ -5,7 +5,7 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold text-secondary"><i class="bi bi-people me-2"></i>KHÁCH HÀNG</h3>
+    <h3 class="fw-bold text-secondary"><i class="bi bi-people me-2"></i>QUẢN LÝ KHÁCH HÀNG</h3>
     <button class="btn btn-outline-success btn-sm" onclick="alert('Đang phát triển')"><i class="bi bi-download"></i> Xuất Excel</button>
 </div>
 
@@ -31,7 +31,7 @@
                         <th class="ps-4">ID</th>
                         <th>Họ và tên</th>
                         <th>Thông tin liên hệ</th>
-                        <th>Đơn hàng</th>
+                        <th>Điểm tích lũy</th> <!-- Cột Mới -->
                         <th>Tổng chi tiêu</th>
                         <th>Trạng thái</th>
                         <th class="text-end pe-4">Hành động</th>
@@ -45,18 +45,27 @@
                             var tongTien = item.HoaDons?.SelectMany(h => h.ChiTietHoaDons).Sum(c => c.DonGia * c.SoLuong) ?? 0;
                             <tr>
                                 <td class="ps-4 text-muted">#@item.MaKh</td>
-                                <td class="fw-bold">@item.HoTen</td>
                                 <td>
-                                    <!-- Lấy thông tin từ bảng TaiKhoan -->
-                                    <div class="small"><i class="bi bi-envelope me-1"></i> @(item.MaTkNavigation?.Email ?? "Chưa có Email")</div>
-                                    <div class="small"><i class="bi bi-phone me-1"></i> @(item.MaTkNavigation?.Sdt ?? "Chưa có SĐT")</div>
+                                    <div class="fw-bold">@item.HoTen</div>
+                                    <div class="small text-muted">Đơn hàng: @(item.HoaDons?.Count ?? 0)</div>
                                 </td>
-                                <td><span class="badge bg-secondary">@(item.HoaDons?.Count ?? 0)</span></td>
+                                <td>
+                                    <div class="small"><i class="bi bi-envelope me-1"></i> @(item.MaTkNavigation?.Email ?? "Chưa cập nhật")</div>
+                                    <div class="small"><i class="bi bi-phone me-1"></i> @(item.MaTkNavigation?.Sdt ?? "Chưa cập nhật")</div>
+                                </td>
+                                
+                                <!-- HIỂN THỊ ĐIỂM TÍCH LŨY -->
+                                <td>
+                                    <span class="badge bg-warning text-dark border border-warning">
+                                        <i class="bi bi-gem me-1"></i> @(item.DiemTichLuy ?? 0)
+                                    </span>
+                                </td>
+
                                 <td class="text-success fw-bold">@tongTien.ToString("#,##0")₫</td>
                                 <td>
                                     @if (item.MaTkNavigation?.TrangThai == true)
                                     {
-                                        <span class="badge bg-success">Hoạt động</span>
+                                        <span class="badge bg-success bg-opacity-75">Hoạt động</span>
                                     }
                                     else
                                     {
@@ -64,7 +73,7 @@
                                     }
                                 </td>
                                 <td class="text-end pe-4">
-                                    <a href="/Admin/KhachHang/Detail/@item.MaKh" class="btn btn-sm btn-info text-white"><i class="bi bi-eye"></i></a>
+                                    <a href="/Admin/KhachHang/Detail/@item.MaKh" class="btn btn-sm btn-info text-white" title="Chi tiết"><i class="bi bi-eye"></i></a>
                                     @if (item.MaTkNavigation != null)
                                     {
                                         if (item.MaTkNavigation.TrangThai == true)
@@ -82,13 +91,13 @@
                     }
                     else
                     {
-                        <tr><td colspan="7" class="text-center py-4">Không tìm thấy khách hàng nào.</td></tr>
+                        <tr><td colspan="7" class="text-center py-4 text-muted">Không tìm thấy khách hàng nào.</td></tr>
                     }
                 </tbody>
             </table>
         </div>
     </div>
-    <!-- Phân trang -->
+    
     @if (ViewBag.TotalPages > 1)
     {
         <div class="card-footer bg-white py-3">
