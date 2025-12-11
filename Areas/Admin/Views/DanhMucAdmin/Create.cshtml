@@ -1,0 +1,56 @@
+@model TechStore.Models.DanhMuc
+@{
+    ViewData["Title"] = "Thêm danh mục";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="page-header">
+    <h1><i class="bi bi-folder-plus me-2"></i>Thêm danh mục mới</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <form asp-action="Store" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="TenDm" class="form-label fw-bold">Tên danh mục <span class="text-danger">*</span></label>
+                        <input asp-for="TenDm" class="form-control" required placeholder="Ví dụ: Laptop Gaming" />
+                        <span asp-validation-for="TenDm" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Icon danh mục</label>
+                        <input type="file" name="hinhanh" class="form-control" accept="image/*" onchange="previewImage(this)">
+                        <small class="text-muted">Nên dùng ảnh PNG nền trong suốt (64x64px)</small>
+                    </div>
+
+                    <div class="text-center mb-3">
+                        <img id="imgPreview" src="https://placehold.co/100x100?text=Preview" class="img-fluid rounded border p-2" style="max-width: 100px;">
+                    </div>
+
+                    <div class="d-flex gap-2 border-top pt-3">
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-2"></i>Lưu lại</button>
+                        <a href="/Admin/DanhMuc" class="btn btn-secondary px-4">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imgPreview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

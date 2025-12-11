@@ -13,18 +13,11 @@
     </div>
 </div>
 
-<!-- ALERTS (Thông báo thành công/lỗi từ Controller) -->
+<!-- THÔNG BÁO -->
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
@@ -45,8 +38,8 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="bg-light">
                 <tr>
-                    <th class="ps-4">ID</th>
-                    <th>Hình ảnh</th>
+                    <th class="ps-4" style="width: 80px;">ID</th>
+                    <th style="width: 100px;">Icon</th>
                     <th>Tên danh mục</th>
                     <th class="text-center">Số sản phẩm</th>
                     <th class="text-end pe-4">Hành động</th>
@@ -62,27 +55,25 @@
                             <td>
                                 @if (!string.IsNullOrEmpty(item.HinhAnh))
                                 {
-                                    <img src="~/Hinh/DanhMuc/@item.HinhAnh" class="rounded" style="width: 40px; height: 40px; object-fit: contain;" onerror="this.src='https://placehold.co/40x40?text=Icon'">
+                                    <img src="~/Hinh/DanhMuc/@item.HinhAnh" class="rounded border p-1" style="width: 40px; height: 40px; object-fit: contain;" onerror="this.src='https://placehold.co/40x40?text=Icon'">
                                 }
                                 else
                                 {
                                     <span class="badge bg-secondary">No Icon</span>
                                 }
                             </td>
-                            <td>
-                                <span class="fw-bold text-dark">@item.TenDm</span>
-                            </td>
+                            <td><span class="fw-bold text-primary">@item.TenDm</span></td>
                             <td class="text-center">
-                                <span class="badge bg-info bg-opacity-10 text-info border border-info rounded-pill">
-                                    @(item.HangHoas?.Count ?? 0) sản phẩm
+                                <span class="badge bg-info text-dark border border-info bg-opacity-25">
+                                    @(item.HangHoas?.Count ?? 0)
                                 </span>
                             </td>
                             <td class="text-end pe-4">
-                                <div class="btn-group">
-                                    <a href="/Admin/DanhMuc/Edit/@item.MaDm" class="btn btn-sm btn-outline-warning" title="Sửa">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/Admin/DanhMuc/Edit/@item.MaDm" class="btn btn-warning" title="Sửa">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteCategory(@item.MaDm)" title="Xóa">
+                                    <button type="button" class="btn btn-danger" onclick="deleteCategory(@item.MaDm)" title="Xóa">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -92,12 +83,7 @@
                 }
                 else
                 {
-                    <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">
-                            <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
-                            Chưa có danh mục nào.
-                        </td>
-                    </tr>
+                    <tr><td colspan="5" class="text-center py-5 text-muted">Chưa có danh mục nào.</td></tr>
                 }
             </tbody>
         </table>
@@ -113,7 +99,7 @@
                     type: 'POST',
                     success: function (res) {
                         if (res.success) {
-                            // Reload lại trang để cập nhật danh sách
+                            alert(res.message);
                             location.reload();
                         } else {
                             alert(res.message);

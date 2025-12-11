@@ -20,13 +20,14 @@ namespace TechStore.Controllers
         public IActionResult Index()
         {
             // Lấy danh sách hàng hóa hiển thị trang chủ
-            // Chỉ lấy sản phẩm có HieuLuc là true (hoặc null nếu coi null là hiện)
-            // Sắp xếp theo mã giảm dần (mới nhất lên đầu)
             var hangHoa = _context.HangHoas
                                 .AsNoTracking()
-                                .Where(p => p.HieuLuc == true || p.HieuLuc == null) 
-                                .OrderByDescending(x => x.MaHh) 
-                                .Take(12) 
+                                .Where(p => p.HieuLuc == true || p.HieuLuc == null)
+                                // 1. Ưu tiên hàng còn tồn kho (SoLuong > 0) lên trước
+                                .OrderByDescending(p => p.SoLuong > 0)
+                                // 2. Sau đó mới sắp xếp theo mới nhất
+                                .ThenByDescending(p => p.MaHh)
+                                .Take(12)
                                 .ToList();
 
             return View(hangHoa);

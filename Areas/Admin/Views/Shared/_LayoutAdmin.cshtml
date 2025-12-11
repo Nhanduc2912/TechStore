@@ -5,29 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Admin TechStore</title>
     
-    <!-- SỬ DỤNG CDN ĐỂ ĐẢM BẢO LOAD ĐƯỢC CSS NGAY CẢ KHI THIẾU FILE LOCAL -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
+            --primary-color: #0d6efd;
+            --danger-color: #e30019;
+            --sidebar-bg: #2c3e50;
+            --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-light: rgba(255, 255, 255, 0.75);
             --sidebar-width: 260px;
             --header-height: 60px;
-            --primary-color: #0d6efd;
-            --sidebar-bg: #212529;
-            --sidebar-color: #fff;
         }
-        
+
         body {
+            background-color: #f5f7fa;
             font-family: 'Inter', sans-serif;
-            background-color: #f4f6f9;
             overflow-x: hidden;
-            margin: 0;
+            margin: 0; 
             padding: 0;
         }
 
-        /* --- SIDEBAR --- */
+        /* SIDEBAR STYLES */
         #sidebar-wrapper {
             width: var(--sidebar-width);
             height: 100vh;
@@ -35,53 +37,90 @@
             top: 0;
             left: 0;
             background-color: var(--sidebar-bg);
-            color: var(--sidebar-color);
+            color: white;
             z-index: 1000;
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .sidebar-heading {
-            height: var(--header-height);
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-header i {
+            font-size: 2rem;
+            color: var(--danger-color);
+        }
+
+        .brand {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 10px 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fix thẻ a trong sidebar */
+        .sidebar-menu a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 12px 25px;
             display: flex;
             align-items: center;
-            padding: 0 1.5rem;
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: #fff;
-            background-color: rgba(0,0,0,0.1);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .list-group-item {
-            background-color: transparent;
-            color: rgba(255,255,255,0.75);
-            border: none;
-            padding: 0.85rem 1.5rem;
-            font-weight: 500;
-            transition: all 0.2s;
+            gap: 12px;
+            font-size: 0.95rem;
             border-left: 4px solid transparent;
+            transition: all 0.2s;
         }
 
-        .list-group-item:hover {
-            background-color: rgba(255,255,255,0.05);
-            color: #fff;
+        .sidebar-menu a:hover {
+            background-color: var(--sidebar-hover);
+            color: white;
+            text-decoration: none;
         }
 
-        .list-group-item.active {
-            background-color: rgba(13, 110, 253, 0.15);
-            color: #fff;
+        .sidebar-menu a.active {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: white;
             border-left-color: var(--primary-color);
         }
-
-        .list-group-item i {
-            width: 24px;
+        
+        .sidebar-menu i {
+            width: 20px;
             text-align: center;
-            margin-right: 10px;
         }
 
-        /* --- MAIN CONTENT --- */
+        /* Nút Đăng xuất */
+        .mt-auto-wrapper {
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 10px;
+            padding-bottom: 20px;
+        }
+
+        .logout-link {
+            color: #ff8787 !important;
+        }
+        
+        .logout-link:hover {
+            background-color: rgba(227, 0, 25, 0.15) !important;
+            color: #ff4d4d !important;
+            border-left-color: var(--danger-color) !important;
+        }
+        
+        /* MAIN CONTENT */
         #page-content-wrapper {
             margin-left: var(--sidebar-width);
             width: calc(100% - var(--sidebar-width));
@@ -91,22 +130,30 @@
             flex-direction: column;
         }
 
-        /* --- TOPBAR --- */
         .topbar {
             height: var(--header-height);
-            background-color: #fff;
-            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.05);
-            padding: 0 1.5rem;
+            background: white;
+            padding: 0 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             position: sticky;
             top: 0;
             z-index: 999;
         }
 
-        /* --- TOGGLED STATE (Khi bấm nút) --- */
-        /* Desktop: Ẩn sidebar */
+        .content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        /* UTILS */
+        .card { border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .btn { border-radius: 6px; }
+        .cursor-pointer { cursor: pointer; }
+
+        /* TOGGLED STATE & MOBILE */
         body.sb-sidenav-toggled #sidebar-wrapper {
             margin-left: calc(-1 * var(--sidebar-width));
         }
@@ -115,30 +162,13 @@
             width: 100%;
         }
 
-        /* --- MOBILE RESPONSIVE --- */
         @@media (max-width: 768px) {
-            /* Mặc định mobile: Ẩn sidebar */
-            #sidebar-wrapper {
-                margin-left: calc(-1 * var(--sidebar-width));
-            }
-            #page-content-wrapper {
-                margin-left: 0;
-                width: 100%;
-            }
-
-            /* Khi bật toggle trên mobile: Hiện sidebar + Overlay */
-            body.sb-sidenav-toggled #sidebar-wrapper {
-                margin-left: 0;
-            }
-            
-            /* Overlay đen làm mờ nền khi mở menu */
+            #sidebar-wrapper { margin-left: calc(-1 * var(--sidebar-width)); }
+            #page-content-wrapper { margin-left: 0; width: 100%; }
+            body.sb-sidenav-toggled #sidebar-wrapper { margin-left: 0; }
             body.sb-sidenav-toggled #page-content-wrapper::before {
-                content: "";
-                position: fixed;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.5);
-                z-index: 998;
-                display: block;
+                content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); z-index: 998; display: block;
             }
         }
     </style>
@@ -147,46 +177,62 @@
     <div class="d-flex" id="wrapper">
         <!-- SIDEBAR -->
         <div id="sidebar-wrapper">
-            <div class="sidebar-heading">
-                <i class="bi bi-shield-lock-fill text-primary me-2"></i> ADMIN
+            <div class="sidebar-header">
+                <i class="bi bi-shield-check"></i>
+                <div class="brand">ADMIN TECHSTORE</div>
             </div>
-            <div class="list-group list-group-flush flex-grow-1 my-3">
-                <!-- Dashboard -->
-                <a href="/Admin/HomeAdmin" class="list-group-item list-group-item-action">
+            
+            <nav class="sidebar-menu">
+                <a href="/Admin/HomeAdmin" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "HomeAdmin" ? "active" : "")">
                     <i class="bi bi-speedometer2"></i> Tổng quan
                 </a>
-
-                <div class="text-uppercase small fw-bold px-3 mt-4 mb-2" style="font-size: 0.75rem;">Quản lý</div>
                 
-                <a href="/Admin/DonHang" class="list-group-item list-group-item-action">
+                <div class="text-uppercase small text-muted fw-bold px-3 mt-3 mb-1" style="font-size: 0.7rem;">Kinh doanh</div>
+
+                <a href="/Admin/DonHang" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "DonHangAdmin" ? "active" : "")">
                     <i class="bi bi-receipt"></i> Đơn hàng
                 </a>
-                <a href="/Admin/SanPham" class="list-group-item list-group-item-action">
+
+                <a href="/Admin/SanPham" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "SanPhamAdmin" ? "active" : "")">
                     <i class="bi bi-box-seam"></i> Sản phẩm
                 </a>
-                <a href="/Admin/DanhMuc" class="list-group-item list-group-item-action">
+
+                <a href="/Admin/DanhMuc" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "DanhMucAdmin" ? "active" : "")">
                     <i class="bi bi-tags"></i> Danh mục
                 </a>
-                <a href="/Admin/KhachHang" class="list-group-item list-group-item-action">
-                    <i class="bi bi-people"></i> Khách hàng
+                
+                <!-- MENU MỚI -->
+                <a href="/Admin/ThuongHieu" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "ThuongHieuAdmin" ? "active" : "")">
+                    <i class="bi bi-award"></i> Thương hiệu
                 </a>
 
-                <div class="text-uppercase small fw-bold px-3 mt-4 mb-2" style="font-size: 0.75rem;">Thống kê</div>
+                <div class="text-uppercase small text-muted fw-bold px-3 mt-3 mb-1" style="font-size: 0.7rem;">Con người</div>
+
+                <a href="/Admin/KhachHang" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "KhachHangAdmin" ? "active" : "")">
+                    <i class="bi bi-people"></i> Khách hàng
+                </a>
                 
-                <a href="/Admin/ThongKe" class="list-group-item list-group-item-action">
+                <!-- MENU MỚI -->
+                <a href="/Admin/NhanVien" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "NhanVienAdmin" ? "active" : "")">
+                    <i class="bi bi-person-badge"></i> Nhân viên
+                </a>
+
+                <div class="text-uppercase small text-muted fw-bold px-3 mt-3 mb-1" style="font-size: 0.7rem;">Hệ thống</div>
+
+                <a href="/Admin/ThongKe" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "ThongKeAdmin" ? "active" : "")">
                     <i class="bi bi-graph-up"></i> Báo cáo
                 </a>
 
                 <!-- Bottom Links -->
-                <div class="mt-auto border-top border-secondary pt-2 pb-3">
-                    <a href="/" target="_blank" class="list-group-item list-group-item-action text-info">
-                        <i class="bi bi-globe"></i> Xem Website
+                <div class="mt-auto-wrapper">
+                    <a href="/" target="_blank">
+                        <i class="bi bi-globe"></i> Xem trang web
                     </a>
-                    <a href="/KhachHang/DangXuat" class="list-group-item list-group-item-action text-danger">
+                    <a href="/KhachHang/DangXuat" class="logout-link">
                         <i class="bi bi-box-arrow-left"></i> Đăng xuất
                     </a>
                 </div>
-            </div>
+            </nav>
         </div>
 
         <!-- PAGE CONTENT -->
@@ -200,10 +246,10 @@
                 <div class="dropdown">
                     <a href="#" class="d-flex align-items-center text-decoration-none text-dark dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="text-end me-2 d-none d-sm-block">
-                            <div class="fw-bold small">@(User?.Identity?.Name ?? "Admin")</div>
+                            <div class="fw-bold small">@(User?.Identity?.Name ?? "Quản trị viên")</div>
                             <div class="text-muted" style="font-size: 0.7rem;">Super Admin</div>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=0D6EFD&color=fff" alt="Avatar" width="36" height="36" class="rounded-circle border">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=0D6EFD&color=fff" alt="User" width="36" height="36" class="rounded-circle border">
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
                         <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Cài đặt</a></li>
@@ -230,8 +276,14 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 }
+                @if (TempData["Info"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i> @TempData["Info"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
 
-                <!-- Body -->
                 @RenderBody()
             </div>
 
@@ -241,32 +293,23 @@
         </div>
     </div>
 
-    <!-- SCRIPTS (Sử dụng CDN) -->
+    <!-- SCRIPTS -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // 1. Toggle Sidebar Logic
-        const sidebarToggle = document.body.querySelector('#sidebarToggle');
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', event => {
-                event.preventDefault();
-                document.body.classList.toggle('sb-sidenav-toggled');
-                localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sb-sidenav-toggled'));
-            });
-        }
+        // Toggle Sidebar
+        document.getElementById('sidebarToggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.body.classList.toggle('sb-sidenav-toggled');
+        });
 
-        // 2. Auto Active Menu
+        // Auto Active Menu
         $(document).ready(function() {
             const path = location.pathname.toLowerCase();
-            $('.list-group-item').each(function() {
+            $('.sidebar-menu a').each(function() {
                 const href = $(this).attr('href')?.toLowerCase();
-                // Active chính xác
                 if (href && path.includes(href) && href !== '/') {
-                    $(this).addClass('active');
-                }
-                // Active Dashboard mặc định
-                if ((path === '/admin' || path === '/admin/') && href === '/Admin/HomeAdmin') {
                     $(this).addClass('active');
                 }
             });

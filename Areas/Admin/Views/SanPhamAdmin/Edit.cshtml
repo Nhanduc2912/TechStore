@@ -14,37 +14,45 @@
             <div class="card-header bg-white fw-bold py-3">Thông tin sản phẩm</div>
             <div class="card-body">
                 <form asp-action="Update" asp-route-id="@Model.MaHh" enctype="multipart/form-data">
-                    <!-- Input ẩn giữ ID và Tên ảnh cũ -->
+                    
                     <input type="hidden" asp-for="MaHh" />
                     <input type="hidden" asp-for="HinhAnh" /> 
                     
-                    <!-- Hiển thị thông báo lỗi -->
                     @if (TempData["Error"] != null)
                     {
                         <div class="alert alert-danger">@TempData["Error"]</div>
                     }
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                    <!-- Tên sản phẩm -->
-                    <div class="mb-3">
-                        <label asp-for="TenHh" class="form-label fw-bold">Tên sản phẩm <span class="text-danger">*</span></label>
-                        <input asp-for="TenHh" class="form-control" required placeholder="Nhập tên sản phẩm..." />
-                        <span asp-validation-for="TenHh" class="text-danger"></span>
+                    <div class="row mb-3">
+                        <div class="col-md-9">
+                            <label asp-for="TenHh" class="form-label fw-bold">Tên sản phẩm <span class="text-danger">*</span></label>
+                            <input asp-for="TenHh" class="form-control" required placeholder="Nhập tên sản phẩm..." />
+                            <span asp-validation-for="TenHh" class="text-danger"></span>
+                        </div>
+                        <!-- FIX LỖI CHECKBOX NULLABLE -->
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Trạng thái</label>
+                            <div class="form-check form-switch mt-2">
+                                <!-- Dùng name="HieuLuc" và value="true" để gửi dữ liệu -->
+                                <input class="form-check-input" type="checkbox" role="switch" id="HieuLuc" name="HieuLuc" value="true" @(Model.HieuLuc == true ? "checked" : "")>
+                                <!-- Input hidden này để gửi giá trị false nếu checkbox không được chọn -->
+                                <input type="hidden" name="HieuLuc" value="false" />
+                                <label class="form-check-label" for="HieuLuc">Đang bán</label>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Mô tả ngắn -->
                     <div class="mb-3">
                         <label asp-for="MoTaNgan" class="form-label fw-bold">Mô tả ngắn</label>
                         <textarea asp-for="MoTaNgan" class="form-control" rows="3"></textarea>
                     </div>
                     
-                    <!-- Chi tiết -->
                     <div class="mb-3">
-                        <label asp-for="MoTaChiTiet" class="form-label fw-bold">Bài viết chi tiết (HTML)</label>
+                        <label asp-for="MoTaChiTiet" class="form-label fw-bold">Bài viết chi tiết</label>
                         <textarea asp-for="MoTaChiTiet" class="form-control" rows="5"></textarea>
                     </div>
 
-                    <!-- Giá & Tồn kho -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="GiaNhap" class="form-label fw-bold">Giá nhập</label>
@@ -62,7 +70,6 @@
                             <input asp-for="SoLuong" class="form-control" type="number" />
                         </div>
                         
-                        <!-- Danh mục (Dropdown tự động chọn giá trị cũ) -->
                         <div class="col-md-6 mb-3">
                             <label asp-for="MaDm" class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
                             <select asp-for="MaDm" class="form-select" asp-items="ViewBag.Categories" required>
@@ -71,7 +78,6 @@
                         </div>
                     </div>
 
-                    <!-- Thương hiệu -->
                     <div class="mb-3">
                          <label asp-for="MaTh" class="form-label fw-bold">Thương hiệu</label>
                          <select asp-for="MaTh" class="form-select" asp-items="ViewBag.Brands">
@@ -79,7 +85,6 @@
                          </select>
                     </div>
 
-                    <!-- Thông số kỹ thuật -->
                     <div class="card bg-light border-0 mb-3">
                         <div class="card-body">
                             <h6 class="card-title fw-bold text-secondary mb-3">Thông số kỹ thuật</h6>
@@ -104,14 +109,12 @@
                         </div>
                     </div>
 
-                    <!-- Upload ảnh mới -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Thay đổi hình ảnh</label>
                         <input type="file" name="hinhanh" class="form-control" accept="image/*" onchange="previewImage(this)">
                         <small class="text-muted">Bỏ qua nếu không muốn thay đổi ảnh hiện tại.</small>
                     </div>
 
-                    <!-- Nút hành động -->
                     <div class="d-flex gap-2 mt-4 pt-3 border-top">
                         <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-2"></i> Lưu thay đổi</button>
                         <a href="/Admin/SanPham" class="btn btn-secondary px-4"><i class="bi bi-x-lg me-2"></i> Hủy bỏ</a>
@@ -121,7 +124,6 @@
         </div>
     </div>
     
-    <!-- Cột xem trước ảnh -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
             <div class="card-header bg-white fw-bold">Hình ảnh hiện tại</div>
@@ -143,7 +145,6 @@
 
 @section Scripts {
     <script>
-        // Script xem trước ảnh khi chọn file mới
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();

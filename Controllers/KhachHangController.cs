@@ -24,28 +24,26 @@ namespace TechStore.Controllers
             return View();
         }
 
-        // --- XỬ LÝ ĐĂNG KÝ (CÓ LƯU LẠI DỮ LIỆU KHI LỖI) ---
+        // --- ĐĂNG KÝ ---
         [HttpPost]
         public IActionResult DangKy(string TenDangNhap, string MatKhau, string Email, string SDT, string HoTen)
         {
             try
             {
-                // 1. LƯU TẠM DỮ LIỆU (Để fill lại form nếu lỗi)
                 TempData["Reg_HoTen"] = HoTen;
                 TempData["Reg_TenDangNhap"] = TenDangNhap;
                 TempData["Reg_Email"] = Email;
                 TempData["Reg_SDT"] = SDT;
 
-                // 2. VALIDATION (Kiểm tra dữ liệu đầu vào)
                 if (string.IsNullOrEmpty(TenDangNhap) || TenDangNhap.Length < 3 || !Regex.IsMatch(TenDangNhap, "^[a-zA-Z0-9_]+$"))
                 {
-                    TempData["RegisterError"] = "Tên đăng nhập phải từ 3 ký tự trở lên và không chứa ký tự đặc biệt!";
+                    TempData["RegisterError"] = "Tên đăng nhập không hợp lệ (tối thiểu 3 ký tự, không dấu)!";
                     return RedirectToAction("Index", "Home");
                 }
 
                 if (string.IsNullOrEmpty(MatKhau) || MatKhau.Length < 6)
                 {
-                    TempData["RegisterError"] = "Mật khẩu quá ngắn! Vui lòng nhập ít nhất 6 ký tự.";
+                    TempData["RegisterError"] = "Mật khẩu quá ngắn (tối thiểu 6 ký tự)!";
                     return RedirectToAction("Index", "Home");
                 }
 
@@ -57,43 +55,34 @@ namespace TechStore.Controllers
 
                 if (string.IsNullOrEmpty(SDT) || !Regex.IsMatch(SDT, @"^0\d{9}$"))
                 {
-                    TempData["RegisterError"] = "Số điện thoại không hợp lệ (phải gồm 10 số và bắt đầu bằng số 0)!";
+                    TempData["RegisterError"] = "Số điện thoại không hợp lệ!";
                     return RedirectToAction("Index", "Home");
                 }
 
-                // 3. KIỂM TRA TRÙNG LẶP TRONG DB
                 if (_context.TaiKhoans.Any(x => x.TenDangNhap == TenDangNhap))
                 {
-                    TempData["RegisterError"] = "Tên đăng nhập này đã có người sử dụng!";
+                    TempData["RegisterError"] = "Tên đăng nhập đã tồn tại!";
                     return RedirectToAction("Index", "Home");
                 }
 
                 if (_context.TaiKhoans.Any(x => x.Email == Email))
                 {
-                    TempData["RegisterError"] = "Email này đã được đăng ký bởi tài khoản khác!";
+                    TempData["RegisterError"] = "Email này đã được sử dụng!";
                     return RedirectToAction("Index", "Home");
                 }
-                
-                if (_context.TaiKhoans.Any(x => x.Sdt == SDT))
-                {
-                     TempData["RegisterError"] = "Số điện thoại này đã được sử dụng!";
-                     return RedirectToAction("Index", "Home");
-                }
 
-                // 4. NẾU THÀNH CÔNG -> XÓA DỮ LIỆU TẠM
                 TempData.Remove("Reg_HoTen");
                 TempData.Remove("Reg_TenDangNhap");
                 TempData.Remove("Reg_Email");
                 TempData.Remove("Reg_SDT");
 
-                // 5. TẠO TÀI KHOẢN MỚI
                 var taiKhoan = new TaiKhoan
                 {
                     TenDangNhap = TenDangNhap,
-                    MatKhau = MatKhau, // Nên mã hóa MD5/SHA256 trong thực tế
+                    MatKhau = MatKhau,
                     Email = Email,
                     Sdt = SDT,
-                    MaVaiTro = 3, // Khách hàng
+                    MaVaiTro = 3,
                     TrangThai = true,
                     NgayTao = DateTime.Now,
                     EmailDaXacThuc = false,
@@ -115,7 +104,6 @@ namespace TechStore.Controllers
                 _context.KhachHangs.Add(khachHang);
                 _context.SaveChanges();
 
-                // Tự động đăng nhập
                 HttpContext.Session.SetString("MaKh", khachHang.MaKh.ToString());
                 HttpContext.Session.SetString("HoTen", khachHang.HoTen);
                 HttpContext.Session.SetString("VaiTro", "KhachHang");
@@ -125,11 +113,12 @@ namespace TechStore.Controllers
             }
             catch (Exception ex)
             {
-                TempData["RegisterError"] = "Có lỗi xảy ra: " + ex.Message;
+                TempData["RegisterError"] = "Lỗi hệ thống: " + ex.Message;
                 return RedirectToAction("Index", "Home");
             }
         }
 
+        // --- ĐĂNG NHẬP ---
         [HttpPost]
         public IActionResult DangNhap(string info, string matkhau)
         {
@@ -147,7 +136,7 @@ namespace TechStore.Controllers
                 }
                 else
                 {
-                    HttpContext.Session.SetString("MaKh", tk.TenDangNhap); // Dùng tạm tên đăng nhập làm ID nếu là Admin
+                    HttpContext.Session.SetString("MaKh", tk.TenDangNhap);
                     HttpContext.Session.SetString("HoTen", "Quản trị viên");
                 }
 
@@ -164,18 +153,20 @@ namespace TechStore.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        // --- ĐĂNG XUẤT ---
         public IActionResult DangXuat()
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }
 
+        // --- LỊCH SỬ ĐƠN HÀNG ---
         public IActionResult DonHang()
         {
             var maKhStr = HttpContext.Session.GetString("MaKh");
-            if (maKhStr == null) return RedirectToAction("Index", "Home"); // Về trang chủ để bật modal
+            if (maKhStr == null) return RedirectToAction("Index", "Home");
 
-            if (int.TryParse(maKhStr, out int maKh))
+            if (int.TryParse(maKhStr, out int maKh)) 
             {
                 var dsDonHang = _context.HoaDons
                     .Include(h => h.MaTrangThaiNavigation)
@@ -191,6 +182,7 @@ namespace TechStore.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        // --- HỒ SƠ CÁ NHÂN ---
         public IActionResult Profile()
         {
             var maKhStr = HttpContext.Session.GetString("MaKh");
@@ -202,15 +194,14 @@ namespace TechStore.Controllers
                     .Include(k => k.MaTkNavigation)
                     .FirstOrDefault(k => k.MaKh == maKh);
                 
-                // Nếu không tìm thấy khách hàng (VD bị xóa), quay về
                 if (khachHang == null) return RedirectToAction("Index", "Home");
 
                 return View(khachHang);
             }
-
             return RedirectToAction("Index", "Home");
         }
-         // --- CẬP NHẬT THÔNG TIN CÁ NHÂN ---
+
+        // --- CẬP NHẬT THÔNG TIN ---
         [HttpPost]
         public IActionResult UpdateProfile(string HoTen, string? NgaySinh, string? DiaChi, string? GioiTinh)
         {
@@ -226,18 +217,41 @@ namespace TechStore.Controllers
                     khachHang.DiaChi = DiaChi;
                     if (DateTime.TryParse(NgaySinh, out DateTime dob))
                     {
-                        // Ép kiểu về DateOnly nếu model dùng DateOnly, hoặc DateTime tùy model
-                        // Ở đây giả sử model dùng DateOnly (theo .NET 6+)
-                        khachHang.NgaySinh = DateOnly.FromDateTime(dob); 
+                        // SỬA LỖI CS0029: Chuyển đổi DateTime sang DateOnly
+                        khachHang.NgaySinh = DateOnly.FromDateTime(dob);
                     }
                     
                     _context.SaveChanges();
                     
-                    // Cập nhật lại Session tên hiển thị
                     HttpContext.Session.SetString("HoTen", HoTen);
                     TempData["Success"] = "Cập nhật hồ sơ thành công!";
                 }
             }
+            return RedirectToAction("Profile");
+        }
+
+        // --- CẬP NHẬT ĐỊA CHỈ (MỚI) ---
+        [HttpPost]
+        public IActionResult UpdateAddress(string SoNha, string TinhThanh, string QuanHuyen, string PhuongXa)
+        {
+            var maKhStr = HttpContext.Session.GetString("MaKh");
+            if (maKhStr == null) return RedirectToAction("Index", "Home");
+
+            if (int.TryParse(maKhStr, out int maKh))
+            {
+                var khachHang = _context.KhachHangs.Find(maKh);
+                if (khachHang != null)
+                {
+                    // Gộp thành chuỗi địa chỉ
+                    // Lưu ý: Các tham số TinhThanh, QuanHuyen... nhận được là Text (Tên) 
+                    // do Script bên View đã xử lý chuyển value từ ID sang Text trước khi submit
+                    khachHang.DiaChi = $"{SoNha}, {PhuongXa}, {QuanHuyen}, {TinhThanh}";
+                    _context.SaveChanges();
+                    TempData["Success"] = "Cập nhật địa chỉ nhận hàng thành công!";
+                }
+            }
+            
+            // Quay lại trang Profile
             return RedirectToAction("Profile");
         }
 
@@ -258,17 +272,15 @@ namespace TechStore.Controllers
                 {
                     var taiKhoan = khachHang.MaTkNavigation;
 
-                    // 1. Kiểm tra mật khẩu cũ
                     if (taiKhoan.MatKhau != OldPass)
                     {
-                        TempData["PassError"] = "Mật khẩu cũ không chính xác!";
+                        TempData["PassError"] = "Mật khẩu cũ không đúng!";
                         return RedirectToAction("Profile");
                     }
 
-                    // 2. Kiểm tra mật khẩu mới
                     if (NewPass.Length < 6)
                     {
-                        TempData["PassError"] = "Mật khẩu mới quá ngắn (tối thiểu 6 ký tự)!";
+                        TempData["PassError"] = "Mật khẩu mới quá ngắn!";
                         return RedirectToAction("Profile");
                     }
 
@@ -278,14 +290,12 @@ namespace TechStore.Controllers
                         return RedirectToAction("Profile");
                     }
 
-                    // 3. Kiểm tra xem đã xác thực SĐT/Email chưa (Yêu cầu bảo mật cao)
                     if (taiKhoan.EmailDaXacThuc != true && taiKhoan.SDTDaXacThuc != true)
                     {
-                        TempData["PassError"] = "Vui lòng xác thực Email hoặc Số điện thoại trước khi đổi mật khẩu!";
+                        TempData["PassError"] = "Vui lòng xác thực Email hoặc SĐT trước khi đổi mật khẩu!";
                         return RedirectToAction("Profile");
                     }
 
-                    // 4. Lưu mật khẩu mới
                     taiKhoan.MatKhau = NewPass;
                     _context.SaveChanges();
                     TempData["Success"] = "Đổi mật khẩu thành công!";
@@ -294,6 +304,7 @@ namespace TechStore.Controllers
             return RedirectToAction("Profile");
         }
 
+        // --- OTP ---
         [HttpPost]
         public IActionResult SendOtp(string type, string value)
         {

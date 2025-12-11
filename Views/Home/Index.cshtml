@@ -1,10 +1,49 @@
 ﻿@model IEnumerable<TechStore.Models.HangHoa>
 @{
     ViewData["Title"] = "Trang chủ";
-    // Lọc dữ liệu: Laptop Gaming ID=1
-    var laptops = Model.Where(p => p.MaDm == 1).Take(4).ToList(); 
+    
+    // Lấy danh sách linh kiện (Đã được sắp xếp Tồn kho -> Mới nhất từ Controller)
+    // Loại bỏ Laptop (MaDm = 1) theo logic cũ của bạn
     var components = Model.Where(p => p.MaDm != 1).Take(8).ToList(); 
 }
+
+<!-- CSS RIÊNG CHO NHÃN HẾT HÀNG -->
+<style>
+    
+    .sold-out-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.6); /* Nền trắng mờ */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        border-radius: 4px;
+        pointer-events: none; /* Vẫn cho phép click vào link bên dưới nếu muốn, hoặc bỏ dòng này để chặn click */
+    }
+    
+    /* Chữ HẾT HÀNG nằm giữa */
+    .sold-out-text {
+        background-color: #333;
+        color: white;
+        padding: 8px 15px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        transform: rotate(-10deg); /* Xoay nghiêng tạo kiểu đóng dấu */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        border: 2px solid white;
+    }
+
+    /* Làm xám ảnh sản phẩm khi hết hàng */
+    @* .product-card.sold-out .product-img-container img {
+        filter: grayscale(100%);
+        opacity: 0.6;
+    } *@
+</style>
 
 <!-- BANNER SLIDER -->
 <div class="row mb-4">
@@ -12,10 +51,10 @@
         <div id="mainCarousel" class="carousel slide shadow rounded overflow-hidden" data-bs-ride="carousel">
             <div class="carousel-inner">
                 <div class="carousel-item active">
-                    <img src="https://placehold.co/800x400/1a1a1a/FFF?text=RTX+4090+SUPER+SALE" class="d-block w-100" alt="Banner 1">
+                    <img src="~/hinh/banner/gearvn-pc-gvn-nvidia-sliders.jpg" class="d-block w-100" alt="Banner 1" onerror="this.src='https://placehold.co/800x400?text=Banner+1'">
                 </div>
                 <div class="carousel-item">
-                    <img src="https://placehold.co/800x400/E30019/FFF?text=LAPTOP+GAMING+2024" class="d-block w-100" alt="Banner 2">
+                    <img src="~/hinh/banner/flex-your-pc-khoe-dan-may-nhan-qua-lien-tay-slider.jpg" class="d-block w-100" alt="Banner 2" onerror="this.src='https://placehold.co/800x400?text=Banner+2'">
                 </div>
             </div>
             <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
@@ -27,93 +66,38 @@
         </div>
     </div>
     <div class="col-md-4 d-flex flex-column gap-3">
-        <img src="https://placehold.co/400x190/333/FFF?text=PC+DESIGN" class="img-fluid rounded shadow w-100">
-        <img src="https://placehold.co/400x190/555/FFF?text=GEAR+SET" class="img-fluid rounded shadow w-100">
+        <img src="~/hinh/banner/laptop-gaming.png" class="img-fluid rounded shadow w-100" onerror="this.src='https://placehold.co/400x190?text=Sub+Banner+1'">
+        <img src="~/hinh/banner/build-pc.png" class="img-fluid rounded shadow w-100" onerror="this.src='https://placehold.co/400x190?text=Sub+Banner+2'">
     </div>
 </div>
 
-<!-- 2. DANH MỤC ICON NHANH (ID ĐÃ SỬA CHÍNH XÁC: 1-6) -->
+<!-- DANH MỤC ICON NHANH -->
 <div class="bg-white p-3 rounded shadow-sm mb-4">
     <div class="d-flex justify-content-between text-center overflow-auto">
-        <!-- Laptop (1) -->
         <a asp-controller="HangHoa" asp-action="Index" asp-route-loai="1" class="text-decoration-none text-dark px-3">
-            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;">
-                <i class="bi bi-laptop fs-4"></i>
-            </div>
+            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;"><i class="bi bi-laptop fs-4"></i></div>
             <span class="small fw-bold">Laptop</span>
         </a>
-        
-        <!-- CPU (2) -->
         <a asp-controller="HangHoa" asp-action="Index" asp-route-loai="2" class="text-decoration-none text-dark px-3">
-            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;">
-                <i class="bi bi-cpu fs-4"></i>
-            </div>
+            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;"><i class="bi bi-cpu fs-4"></i></div>
             <span class="small fw-bold">CPU</span>
         </a>
-        
-        <!-- VGA (3) -->
         <a asp-controller="HangHoa" asp-action="Index" asp-route-loai="3" class="text-decoration-none text-dark px-3">
-            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;">
-                <i class="bi bi-gpu-card fs-4"></i>
-            </div>
+            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;"><i class="bi bi-gpu-card fs-4"></i></div>
             <span class="small fw-bold">VGA</span>
         </a>
-        
-        <!-- Mainboard (4) -->
         <a asp-controller="HangHoa" asp-action="Index" asp-route-loai="4" class="text-decoration-none text-dark px-3">
-            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;">
-                <i class="bi bi-motherboard fs-4"></i>
-            </div>
+            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;"><i class="bi bi-motherboard fs-4"></i></div>
             <span class="small fw-bold">Mainboard</span>
         </a>
-        
-        <!-- Màn hình (5) -->
         <a asp-controller="HangHoa" asp-action="Index" asp-route-loai="5" class="text-decoration-none text-dark px-3">
-            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;">
-                <i class="bi bi-display fs-4"></i>
-            </div>
+            <div class="bg-light rounded-circle p-3 mb-2 mx-auto" style="width: 60px; height: 60px;"><i class="bi bi-display fs-4"></i></div>
             <span class="small fw-bold">Màn hình</span>
         </a>
     </div>
 </div>
 
-<!-- 3. LAPTOP GAMING (MaDM = 1) -->
-<div class="section-header">
-    <span><i class="bi bi-fire me-2"></i> LAPTOP GAMING BÁN CHẠY</span>
-    <a href="/HangHoa/Index?loai=1">Xem tất cả <i class="bi bi-chevron-right"></i></a>
-</div>
-
-<div class="row row-cols-2 row-cols-md-4 g-3 mb-5">
-    @foreach (var item in laptops)
-    {
-        <div class="col">
-            <div class="product-card">
-                <div class="product-img-container">
-                    <a href="/HangHoa/Detail/@item.MaHh">
-                        <img src="~/Hinh/HangHoa/@item.HinhAnh" alt="@item.TenHh" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
-                    </a>
-                </div>
-                <div class="mt-2">
-                    <h3 class="product-title">
-                        <a href="/HangHoa/Detail/@item.MaHh" class="text-dark">@item.TenHh</a>
-                    </h3>
-                    <div class="text-muted small mb-2 text-truncate">
-                        <i class="bi bi-memory"></i> @item.Ram | <i class="bi bi-device-ssd"></i> @item.BoNho
-                    </div>
-                    <div class="product-price">@item.DonGia.ToString("#,##0")₫</div>
-                    
-                    <!-- NÚT MUA HÀNG -->
-                     <a href="/HangHoa/Detail/@item.MaHh" class="btn btn-buy-now btn-sm d-block text-center text-decoration-none">
-                        Xem Chi Tiết
-                    </a>
-                </div>
-                <div class="position-absolute top-0 start-0 m-2 badge bg-danger">HOT</div>
-            </div>
-        </div>
-    }
-</div>
-
-<!-- 4. LINH KIỆN PC -->
+<!-- BLOCK: LINH KIỆN PC & MÀN HÌNH -->
 <div class="section-header bg-dark">
     <span><i class="bi bi-pc me-2"></i> LINH KIỆN PC & MÀN HÌNH</span>
     <a href="/HangHoa/Index">Xem tất cả <i class="bi bi-chevron-right"></i></a>
@@ -122,27 +106,51 @@
 <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
     @foreach (var item in components)
     {
+        // Kiểm tra tồn kho
+        var isOutOfStock = (item.SoLuong ?? 0) <= 0;
+
         <div class="col">
-            <div class="product-card">
+            <div class="product-card @(isOutOfStock ? "sold-out" : "") position-relative h-100">
+                
+                <!-- Lớp phủ HẾT HÀNG -->
+                @if (isOutOfStock)
+                {
+                    <div class="sold-out-overlay">
+                        <span class="sold-out-text">HẾT HÀNG</span>
+                    </div>
+                }
+
                 <div class="product-img-container">
                     <a href="/HangHoa/Detail/@item.MaHh">
                         <img src="~/Hinh/HangHoa/@item.HinhAnh" alt="@item.TenHh" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
                     </a>
                 </div>
-                <div class="mt-2">
-                    <h3 class="product-title">
-                        <a href="/HangHoa/Detail/@item.MaHh" class="text-dark">@item.TenHh</a>
+
+                <div class="mt-2 d-flex flex-column" style="height: 150px;">
+                    <h3 class="product-title flex-shrink-0">
+                        <a href="/HangHoa/Detail/@item.MaHh" class="text-dark text-decoration-none">@item.TenHh</a>
                     </h3>
                     <div class="text-muted small mb-2 text-truncate">
                         @item.MoTaNgan
                     </div>
-                    <div class="product-price">@item.DonGia.ToString("#,##0")₫</div>
                     
-                    @* <a asp-controller="GioHang" asp-action="AddToCart" asp-route-id="@item.MaHh" class="btn btn-buy-now btn-sm d-block text-center text-decoration-none"> *@
-                    <a href="/HangHoa/Detail/@item.MaHh" class="btn btn-buy-now btn-sm d-block text-center text-decoration-none">
-                        Xem Chi Tiết
-                    </a>
+                    <div class="mt-auto">
+                        <div class="product-price mb-2">@item.DonGia.ToString("#,##0")₫</div>
+                        
+                        @if(isOutOfStock) {
+                            <button class="btn btn-secondary btn-sm d-block w-100 disabled" disabled>Tạm hết hàng</button>
+                        } else {
+                            <a href="/HangHoa/Detail/@item.MaHh" class="btn btn-buy-now btn-sm d-block text-center text-decoration-none">
+                                Xem Chi Tiết
+                            </a>
+                        }
+                    </div>
                 </div>
+                
+                <!-- Badge HOT (Chỉ hiện khi còn hàng và lượt xem cao) -->
+                @if(!isOutOfStock && (item.SoLuotXem ?? 0) > 100) {
+                     <div class="position-absolute top-0 start-0 m-2 badge bg-danger">HOT</div>
+                }
             </div>
         </div>
     }

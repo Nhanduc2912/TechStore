@@ -1,0 +1,111 @@
+@model IEnumerable<TechStore.Models.NhanVien>
+@{
+    ViewData["Title"] = "Quản lý nhân viên";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3"><i class="bi bi-person-badge me-2"></i>Quản lý nhân viên</h1>
+    <a href="/Admin/NhanVien/Create" class="btn btn-success btn-sm shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i> Thêm nhân viên
+    </a>
+</div>
+
+<!-- THÔNG BÁO -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <div class="row align-items-center">
+            <div class="col">
+                <strong class="text-primary"><i class="bi bi-list-ul me-2"></i>Danh sách nhân viên</strong>
+            </div>
+            <div class="col-auto">
+                <span class="text-muted small">Tổng: @Model.Count() nhân viên</span>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Mã NV</th>
+                    <th>Họ tên</th>
+                    <th>Tài khoản (Login)</th>
+                    <th>Liên hệ</th>
+                    <th>Ngày vào làm</th>
+                    <th class="text-end pe-4">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 text-muted fw-bold">NV-@item.MaNv</td>
+                            <td class="fw-bold text-primary">@item.HoTen</td>
+                            <td>
+                                @if (item.MaTkNavigation != null)
+                                {
+                                    <span class="d-block small fw-bold">@item.MaTkNavigation.TenDangNhap</span>
+                                    <span class="badge bg-info text-dark border border-info bg-opacity-25">Staff</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Chưa cấp TK</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="small"><i class="bi bi-envelope me-1 text-muted"></i> @(item.MaTkNavigation?.Email ?? "N/A")</div>
+                                <div class="small"><i class="bi bi-phone me-1 text-muted"></i> @(item.MaTkNavigation?.Sdt ?? "N/A")</div>
+                            </td>
+                            <td>@(item.NgayVaoLam?.ToString("dd/MM/yyyy") ?? "-")</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/Admin/NhanVien/Detail/@item.MaNv" class="btn btn-info text-white" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="/Admin/NhanVien/Edit/@item.MaNv" class="btn btn-warning" title="Sửa thông tin">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button class="btn btn-danger" onclick="deleteStaff(@item.MaNv)" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6" class="text-center py-5 text-muted fst-italic">Chưa có nhân viên nào.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteStaff(id) {
+            if(confirm('CẢNH BÁO: Xóa nhân viên sẽ xóa luôn tài khoản đăng nhập và lịch sử liên quan. Bạn có chắc chắn muốn xóa?')) {
+                $.post('/Admin/NhanVien/Delete/' + id, function(res){
+                    if(res.success) {
+                        alert("Đã xóa thành công!");
+                        location.reload();
+                    }
+                    else alert("Lỗi: " + res.message);
+                }).fail(function() {
+                    alert("Lỗi kết nối server!");
+                });
+            }
+        }
+    </script>
+}

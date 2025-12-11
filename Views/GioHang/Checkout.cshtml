@@ -5,117 +5,77 @@
 
 <div class="container py-5">
     
-    <!-- KHU VỰC HIỂN THỊ LỖI TỪ CONTROLLER -->
+    <!-- HIỂN THỊ LỖI TỪ CONTROLLER -->
     @if (TempData["Loi"] != null)
     {
-        <div class="alert alert-danger mb-4 shadow-sm fw-bold d-flex align-items-center border-danger">
+        <div class="alert alert-danger mb-4 shadow-sm fw-bold border-danger d-flex align-items-center">
             <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-            <div>
-                @TempData["Loi"]
-                @if (TempData["Loi"]?.ToString()?.Contains("xác thực") == true)
-                {
-                    <div class="mt-1">
-                        <a href="/KhachHang/Profile" class="btn btn-sm btn-outline-danger fw-bold">
-                            <i class="bi bi-person-gear"></i> Đi đến Hồ sơ cá nhân để xác thực ngay
-                        </a>
-                    </div>
-                }
-            </div>
+            <div>@TempData["Loi"]</div>
         </div>
     }
 
     <div class="row">
-        <!-- CỘT TRÁI: FORM NHẬP THÔNG TIN -->
+        <!-- CỘT TRÁI: THÔNG TIN XÁC NHẬN -->
         <div class="col-md-7">
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                    <h4 class="fw-bold text-uppercase"><i class="bi bi-truck me-2"></i>Thông tin giao hàng</h4>
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-uppercase mb-0 text-primary">
+                        <i class="bi bi-geo-alt-fill me-2"></i>Địa chỉ nhận hàng
+                    </h5>
+                    <a href="/KhachHang/Profile" class="btn btn-sm btn-outline-primary fw-bold">
+                        <i class="bi bi-pencil-square"></i> Thay đổi
+                    </a>
                 </div>
                 <div class="card-body">
-                    
-                    <!-- THÔNG BÁO: THÔNG TIN LIÊN HỆ ĐÃ XÁC THỰC (Thay thế cho ô nhập) -->
-                    <div class="alert alert-success bg-light border-success d-flex align-items-center mb-4">
-                        <div class="bg-white p-2 rounded-circle border border-success me-3 text-success">
-                            <i class="bi bi-shield-check fs-3"></i>
+                    <!-- Card hiển thị địa chỉ có sẵn từ Database -->
+                    <div class="p-3 rounded border border-primary bg-primary bg-opacity-10 position-relative mt-2">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="fw-bold fs-5 me-3">@ViewBag.NguoiNhan</span>
+                            <span class="text-muted">|</span>
+                            <span class="ms-3 fw-bold">@ViewBag.DienThoai</span>
                         </div>
-                        <div>
-                            <div class="small text-muted text-uppercase fw-bold">Thông tin liên hệ (Đã xác thực)</div>
-                            <div class="fw-bold text-dark">@ViewBag.NguoiNhan</div>
-                            <div class="small">
-                                <span class="me-2"><i class="bi bi-telephone-fill text-secondary"></i> @ViewBag.DienThoai</span>
-                                <span><i class="bi bi-envelope-fill text-secondary"></i> @ViewBag.Email</span>
-                            </div>
+                        <div class="text-secondary mb-1">
+                            <i class="bi bi-envelope me-2"></i> @ViewBag.Email
                         </div>
-                        <a href="/KhachHang/Profile" class="btn btn-sm btn-outline-secondary ms-auto border-0">Thay đổi</a>
+                        <div class="text-dark fw-bold">
+                            <i class="bi bi-house-door me-2"></i> @(ViewBag.DiaChi ?? "Chưa cập nhật địa chỉ")
+                        </div>
+                        <span class="position-absolute top-0 end-0 badge bg-primary m-2">Mặc định</span>
                     </div>
 
-                    <form asp-action="Checkout" method="post" class="needs-validation" id="checkoutForm">
-                        <div class="row g-3">
-                            <!-- Họ tên người nhận hàng (Vẫn cho sửa tên người nhận nếu muốn nhận hộ) -->
-                            <div class="col-12">
-                                <label class="form-label fw-bold">Họ tên người nhận hàng <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control py-2" name="HoTen" value="@(ViewBag.NguoiNhan ?? "")" required>
-                            </div>
+                    <!-- FORM XÁC NHẬN ĐƠN HÀNG -->
+                    <form asp-action="Checkout" method="post" class="mt-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted">Ghi chú cho đơn hàng (Tùy chọn)</label>
+                            <textarea class="form-control" name="GhiChu" rows="2" placeholder="Ví dụ: Giao hàng giờ hành chính, gọi trước khi giao..."></textarea>
+                        </div>
 
-                            <div class="col-12"><hr class="text-muted opacity-25"></div>
-
-                            <!-- BỘ CHỌN ĐỊA CHỈ VIỆT NAM (API) -->
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Tỉnh / Thành <span class="text-danger">*</span></label>
-                                <select class="form-select py-2" id="tinh" name="TinhThanh" required title="Chọn Tỉnh Thành">
-                                    <option value="0">-- Chọn Tỉnh --</option>
-                                </select> 
+                        <h5 class="fw-bold mb-3 mt-4 text-primary"><i class="bi bi-credit-card-2-front me-2"></i>Phương thức thanh toán</h5>
+                        <div class="border rounded p-3 bg-light">
+                            <div class="form-check mb-2">
+                                <input id="cod" name="paymentMethod" type="radio" class="form-check-input" value="COD" checked>
+                                <label class="form-check-label fw-bold cursor-pointer" for="cod">
+                                    <i class="bi bi-cash-stack me-2 text-success"></i>Thanh toán khi nhận hàng (COD)
+                                </label>
+                                <div class="small text-muted ms-4">Thanh toán bằng tiền mặt cho shipper khi nhận hàng.</div>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Quận / Huyện <span class="text-danger">*</span></label>
-                                <select class="form-select py-2" id="quan" name="QuanHuyen" required title="Chọn Quận Huyện">
-                                    <option value="0">-- Chọn Quận --</option>
-                                </select> 
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Phường / Xã <span class="text-danger">*</span></label>
-                                <select class="form-select py-2" id="phuong" name="PhuongXa" required title="Chọn Phường Xã">
-                                    <option value="0">-- Chọn Phường --</option>
-                                </select> 
-                            </div>
-
-                            <!-- Số nhà chi tiết -->
-                            <div class="col-12">
-                                <label class="form-label fw-bold">Địa chỉ cụ thể <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control py-2" name="SoNha" placeholder="Ví dụ: Số 10, Ngõ 50, Đường ABC..." required>
-                            </div>
-
-                            <!-- Ghi chú -->
-                            <div class="col-12">
-                                <label class="form-label fw-bold">Ghi chú đơn hàng</label>
-                                <textarea class="form-control" name="GhiChu" rows="2" placeholder="Ví dụ: Giao hàng giờ hành chính, gọi trước khi giao..."></textarea>
+                            <hr>
+                            <div class="form-check">
+                                <input id="banking" name="paymentMethod" type="radio" class="form-check-input" value="Banking">
+                                <label class="form-check-label fw-bold cursor-pointer" for="banking">
+                                    <i class="bi bi-qr-code me-2 text-primary"></i>Chuyển khoản ngân hàng (QR Code)
+                                </label>
+                                <div class="small text-muted ms-4">Quét mã VietQR để thanh toán nhanh chóng, chính xác.</div>
                             </div>
                         </div>
 
-                        <div class="mt-4">
-                            <h5 class="fw-bold mb-3">Phương thức thanh toán</h5>
-                            <div class="border rounded p-3 bg-light">
-                                <div class="form-check mb-2">
-                                    <input id="cod" name="paymentMethod" type="radio" class="form-check-input" checked required>
-                                    <label class="form-check-label fw-bold" for="cod">
-                                        <i class="bi bi-cash-stack me-2 text-success"></i>Thanh toán khi nhận hàng (COD)
-                                    </label>
-                                    <div class="small text-muted ms-4">Bạn sẽ thanh toán tiền mặt cho shipper khi nhận được hàng.</div>
-                                </div>
-                                <hr>
-                                <div class="form-check">
-                                    <input id="banking" name="paymentMethod" type="radio" class="form-check-input" required>
-                                    <label class="form-check-label fw-bold" for="banking">
-                                        <i class="bi bi-qr-code me-2 text-primary"></i>Chuyển khoản ngân hàng (QR Code)
-                                    </label>
-                                    <div class="small text-muted ms-4">Quét mã QR để thanh toán nhanh chóng, an toàn.</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button class="btn btn-danger bg-gearvn btn-lg w-100 fw-bold py-3 mt-4 shadow" type="submit">
+                        <button class="btn btn-danger bg-gearvn btn-lg w-100 fw-bold py-3 mt-4 shadow transition-btn" type="submit">
                             <i class="bi bi-check-circle-fill me-2"></i> XÁC NHẬN ĐẶT HÀNG
                         </button>
+                        
+                        <div class="text-center mt-3">
+                            <span class="text-muted small">Bằng việc đặt hàng, bạn đồng ý với <a href="#" class="text-decoration-none">Điều khoản sử dụng</a> của TechStore.</span>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -125,7 +85,7 @@
         <div class="col-md-5 order-md-last mt-4 mt-md-0">
             <div class="card border-0 shadow-sm bg-white sticky-top" style="top: 100px;">
                 <div class="card-header bg-light border-bottom-0 py-3">
-                    <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-cart-check me-2"></i>Đơn hàng của bạn <span class="badge bg-danger rounded-pill float-end">@Model.Sum(p => p.SoLuong)</span></h5>
+                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-cart-check me-2"></i>Đơn hàng của bạn <span class="badge bg-danger rounded-pill float-end">@Model.Sum(p => p.SoLuong)</span></h5>
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
@@ -164,73 +124,14 @@
                     </ul>
                 </div>
                 <div class="card-footer bg-white border-top-0 pb-3 text-center">
-                    <small class="text-muted"><i class="bi bi-shield-lock-fill"></i> Thông tin thanh toán được bảo mật tuyệt đối</small>
+                    <small class="text-muted"><i class="bi bi-shield-lock-fill text-success"></i> Thông tin thanh toán được bảo mật tuyệt đối (SSL)</small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- SCRIPT API ĐỊA CHỈ VIỆT NAM -->
-<script src="https://esgoo.net/scripts/jquery.js"></script>
-<script>
-    $(document).ready(function() {
-        // Load Tỉnh Thành
-        $.getJSON('https://esgoo.net/api-tinhthanh/1/0.htm', function(data_tinh) {
-            if (data_tinh.error == 0) {
-               $.each(data_tinh.data, function (key_tinh, val_tinh) {
-                  $("#tinh").append('<option value="' + val_tinh.id + '">' + val_tinh.full_name + '</option>');
-               });
-               
-               // Khi chọn Tỉnh -> Load Quận
-               $("#tinh").change(function (e) {
-                    var idtinh = $(this).val();
-                    $("#quan").html('<option value="0">-- Chọn Quận --</option>');
-                    $("#phuong").html('<option value="0">-- Chọn Phường --</option>');
-                    
-                    if(idtinh != "0"){
-                        $.getJSON('https://esgoo.net/api-tinhthanh/2/' + idtinh + '.htm', function (data_quan) {
-                            if (data_quan.error == 0) {
-                               $.each(data_quan.data, function (key_quan, val_quan) {
-                                  $("#quan").append('<option value="' + val_quan.id + '">' + val_quan.full_name + '</option>');
-                               });
-                            }
-                        });
-                    }
-               });
-               
-               // Khi chọn Quận -> Load Phường
-               $("#quan").change(function (e) {
-                    var idquan = $(this).val();
-                    $("#phuong").html('<option value="0">-- Chọn Phường --</option>');
-                    
-                    if(idquan != "0"){
-                        $.getJSON('https://esgoo.net/api-tinhthanh/3/' + idquan + '.htm', function (data_phuong) {
-                            if (data_phuong.error == 0) {
-                               $.each(data_phuong.data, function (key_phuong, val_phuong) {
-                                  $("#phuong").append('<option value="' + val_phuong.full_name + '">' + val_phuong.full_name + '</option>');
-                               });
-                            }
-                        });
-                    }
-               });
-            }
-        });
-        
-        // TRƯỚC KHI SUBMIT: Chuyển ID địa chỉ thành TÊN địa chỉ để lưu vào DB
-        $('#checkoutForm').on('submit', function() {
-            if($("#tinh").val() != "0") {
-                var tenTinh = $("#tinh option:selected").text();
-                $("#tinh option:selected").val(tenTinh); 
-            }
-            if($("#quan").val() != "0") {
-                var tenQuan = $("#quan option:selected").text();
-                $("#quan option:selected").val(tenQuan);
-            }
-            if($("#phuong").val() != "0") {
-                var tenPhuong = $("#phuong option:selected").text();
-                $("#phuong option:selected").val(tenPhuong);
-            }
-        });
-    });
-</script>
+<style>
+    .cursor-pointer { cursor: pointer; }
+    .transition-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4) !important; }
+</style>

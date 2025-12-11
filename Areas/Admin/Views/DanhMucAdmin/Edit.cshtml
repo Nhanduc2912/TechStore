@@ -1,0 +1,66 @@
+@model TechStore.Models.DanhMuc
+@{
+    ViewData["Title"] = "Cập nhật danh mục";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="page-header">
+    <h1><i class="bi bi-pencil-square me-2"></i>Cập nhật danh mục</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <form asp-action="Update" asp-route-id="@Model.MaDm" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="MaDm" />
+                    
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="TenDm" class="form-label fw-bold">Tên danh mục <span class="text-danger">*</span></label>
+                        <input asp-for="TenDm" class="form-control" required />
+                        <span asp-validation-for="TenDm" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Thay đổi Icon</label>
+                        <input type="file" name="hinhanh" class="form-control" accept="image/*" onchange="previewImage(this)">
+                        <small class="text-muted">Bỏ qua nếu không muốn thay đổi ảnh.</small>
+                    </div>
+
+                    <div class="text-center mb-3 bg-light p-3 rounded">
+                        <label class="d-block small text-muted mb-2">Icon hiện tại / Mới</label>
+                        @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                        {
+                            <img id="imgPreview" src="~/Hinh/DanhMuc/@Model.HinhAnh" class="img-fluid rounded border bg-white p-1" style="max-width: 80px;" onerror="this.src='https://placehold.co/80x80?text=No+Img'">
+                        }
+                        else
+                        {
+                            <img id="imgPreview" src="https://placehold.co/80x80?text=No+Img" class="img-fluid rounded border bg-white p-1" style="max-width: 80px;">
+                        }
+                    </div>
+
+                    <div class="d-flex gap-2 border-top pt-3">
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-2"></i>Lưu thay đổi</button>
+                        <a href="/Admin/DanhMuc" class="btn btn-secondary px-4">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imgPreview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

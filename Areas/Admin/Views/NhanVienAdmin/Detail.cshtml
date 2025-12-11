@@ -1,0 +1,98 @@
+@model TechStore.Models.NhanVien
+@{
+    ViewData["Title"] = "Chi tiết nhân viên";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    var taiKhoan = Model.MaTkNavigation;
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h1><i class="bi bi-person-badge me-2"></i>Chi tiết nhân viên</h1>
+    <a href="/Admin/NhanVien" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Quay lại</a>
+</div>
+
+<div class="row">
+    <!-- Thông tin cơ bản -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-bold py-3">Thông tin cá nhân</div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td class="text-muted w-25">Họ và tên:</td>
+                        <td class="fw-bold fs-5">@Model.HoTen</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Mã nhân viên:</td>
+                        <td><span class="badge bg-secondary">NV-@Model.MaNv</span></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Ngày sinh:</td>
+                        <td>@(Model.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Địa chỉ:</td>
+                        <td>@(Model.DiaChi ?? "Chưa cập nhật")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Ngày vào làm:</td>
+                        <td>@(Model.NgayVaoLam?.ToString("dd/MM/yyyy") ?? "-")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin tài khoản -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-bold py-3 text-primary">Thông tin tài khoản hệ thống</div>
+            <div class="card-body">
+                @if (taiKhoan != null)
+                {
+                    <table class="table table-borderless">
+                        <tr>
+                            <td class="text-muted w-25">Tên đăng nhập:</td>
+                            <td class="fw-bold">@taiKhoan.TenDangNhap</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Email:</td>
+                            <td>@taiKhoan.Email</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Số điện thoại:</td>
+                            <td>@taiKhoan.Sdt</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Vai trò:</td>
+                            <td><span class="badge bg-info text-dark">Nhân viên (Staff)</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Trạng thái:</td>
+                            <td>
+                                @if (taiKhoan.TrangThai == true)
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Đang hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger"><i class="bi bi-lock"></i> Đã khóa</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Ngày tạo TK:</td>
+                            <td>@taiKhoan.NgayTao?.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-warning">Nhân viên này chưa được cấp tài khoản hệ thống.</div>
+                }
+            </div>
+            <div class="card-footer bg-white border-top-0 text-end">
+                <a href="/Admin/NhanVien/Edit/@Model.MaNv" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Chỉnh sửa thông tin</a>
+            </div>
+        </div>
+    </div>
+</div>

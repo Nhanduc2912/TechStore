@@ -25,6 +25,9 @@ namespace TechStore.Areas.Admin.Controllers
             _db = context;
         }
 
+        // ... (Các hàm Index, Create, Store giữ nguyên) ...
+
+        // === HELPER ===
         private void LoadViewBag(int? selectedDm = null, int? selectedTh = null)
         {
             var danhMucs = _db.DanhMucs.OrderBy(d => d.TenDm).ToList();
@@ -34,6 +37,7 @@ namespace TechStore.Areas.Admin.Controllers
             ViewBag.Brands = new SelectList(thuongHieus, "MaTh", "TenTh", selectedTh);
         }
 
+        // ... (Hàm Index giữ nguyên) ...
         [Route("")]
         [Route("index")]
         [HttpGet]
@@ -85,11 +89,15 @@ namespace TechStore.Areas.Admin.Controllers
 
         [Route("store")]
         [HttpPost]
-        public async Task<IActionResult> Store([Bind("TenHh,MoTaNgan,MoTaChiTiet,GiaNhap,DonGia,SoLuong,HinhAnh,MaDm,MaTh,Ram,BoNho,MauSac,HeDieuHanh")] HangHoa model, IFormFile hinhanh)
+        public async Task<IActionResult> Store(HangHoa model, IFormFile hinhanh)
         {
             ModelState.Remove("TenAlias");
             ModelState.Remove("MaDmNavigation");
             ModelState.Remove("MaThNavigation");
+            
+            // Khi tạo mới thì HinhAnh là bắt buộc nếu bạn muốn (hoặc không)
+            // Ở đây tôi để lỏng validation để tránh lỗi, check manual
+            ModelState.Remove("HinhAnh"); 
 
             if (!ModelState.IsValid)
             {
@@ -126,13 +134,13 @@ namespace TechStore.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                var msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                TempData["Error"] = "Lỗi lưu DB: " + msg;
+                TempData["Error"] = "Lỗi lưu DB: " + ex.Message;
                 LoadViewBag(model.MaDm, model.MaTh);
                 return View("Create", model);
             }
         }
 
+        // --- EDIT (GET) ---
         [Route("edit/{id}")]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
@@ -144,35 +152,43 @@ namespace TechStore.Areas.Admin.Controllers
             return View(product);
         }
 
+        // --- UPDATE (POST) - ĐÃ FIX LỖI ẢNH VÀ TRẠNG THÁI ---
         [Route("update/{id}")]
         [HttpPost]
-        public async Task<IActionResult> Update(int id, [Bind("MaHh,TenHh,MoTaNgan,MoTaChiTiet,GiaNhap,DonGia,SoLuong,HinhAnh,MaDm,MaTh,Ram,BoNho,MauSac,HeDieuHanh,HieuLuc")] HangHoa model, IFormFile hinhanh)
+        public async Task<IActionResult> Update(int id, HangHoa model, IFormFile hinhanh)
         {
             if (id != model.MaHh) return NotFound();
 
+            // 1. Loại bỏ Validation cho các trường không nhập hoặc tự sinh
             ModelState.Remove("TenAlias");
             ModelState.Remove("MaDmNavigation");
             ModelState.Remove("MaThNavigation");
+            ModelState.Remove("HinhAnh"); // FIX: Bỏ validate ảnh vì Edit không bắt buộc chọn ảnh mới
 
             if (!ModelState.IsValid)
             {
+                TempData["Error"] = "Dữ liệu nhập vào không hợp lệ!";
                 LoadViewBag(model.MaDm, model.MaTh);
                 return View("Edit", model);
             }
 
             try
             {
+                // Lấy sản phẩm cũ từ DB ra để cập nhật
                 var existingProduct = await _db.HangHoas.FindAsync(id);
                 if (existingProduct == null) return NotFound();
 
+                // 2. Xử lý ảnh: Chỉ cập nhật nếu người dùng chọn file mới
                 if (hinhanh != null)
                 {
+                    // Xóa ảnh cũ nếu có
                     if (!string.IsNullOrEmpty(existingProduct.HinhAnh))
                     {
                         var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/hinh/hanghoa", existingProduct.HinhAnh);
                         if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
                     }
 
+                    // Lưu ảnh mới
                     var fileName = Guid.NewGuid() + Path.GetExtension(hinhanh.FileName);
                     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/hinh/hanghoa", fileName);
                     using (var stream = new FileStream(filePath, FileMode.Create))
@@ -181,7 +197,9 @@ namespace TechStore.Areas.Admin.Controllers
                     }
                     existingProduct.HinhAnh = fileName;
                 }
+                // Nếu hinhanh == null -> Giữ nguyên existingProduct.HinhAnh cũ
 
+                // 3. Cập nhật các thông tin khác
                 existingProduct.TenHh = model.TenHh;
                 existingProduct.MoTaNgan = model.MoTaNgan;
                 existingProduct.MoTaChiTiet = model.MoTaChiTiet;
@@ -194,7 +212,11 @@ namespace TechStore.Areas.Admin.Controllers
                 existingProduct.BoNho = model.BoNho;
                 existingProduct.MauSac = model.MauSac;
                 existingProduct.HeDieuHanh = model.HeDieuHanh;
-                existingProduct.HieuLuc = model.HieuLuc; // Cập nhật trạng thái hiển thị
+                
+                // FIX: Cập nhật trạng thái Hiệu lực từ form (Checkbox switch)
+                // Lưu ý: Nếu checkbox không được check, model.HieuLuc có thể là null hoặc false.
+                // Ta cần đảm bảo nó lấy đúng giá trị gửi lên.
+                existingProduct.HieuLuc = model.HieuLuc; 
                 
                 existingProduct.TenAlias = MyUtil.ToUrlFriendly(model.TenHh);
 
@@ -213,6 +235,7 @@ namespace TechStore.Areas.Admin.Controllers
             }
         }
 
+        // ... (Các hàm Detail, Delete, ToggleStatus giữ nguyên) ...
         [Route("detail/{id}")]
         [HttpGet]
         public async Task<IActionResult> Detail(int id)
@@ -232,21 +255,16 @@ namespace TechStore.Areas.Admin.Controllers
         {
             try 
             {
-                var product = await _db.HangHoas
-                    .Include(p => p.ChiTietHoaDons)
-                    .FirstOrDefaultAsync(p => p.MaHh == id);
-
+                var product = await _db.HangHoas.Include(p => p.ChiTietHoaDons).FirstOrDefaultAsync(p => p.MaHh == id);
                 if (product == null) return Json(new { success = false, message = "Không tìm thấy sản phẩm" });
 
-                // Soft Delete nếu đã bán
                 if (product.ChiTietHoaDons.Any())
                 {
                     product.HieuLuc = false;
                     await _db.SaveChangesAsync();
-                    return Json(new { success = true, message = "Sản phẩm đã có đơn hàng nên chuyển sang trạng thái Ẩn!" });
+                    return Json(new { success = true, message = "Sản phẩm đã bán, chuyển sang trạng thái Ẩn." });
                 }
 
-                // Hard Delete
                 if (!string.IsNullOrEmpty(product.HinhAnh))
                 {
                     var filePath = Path.Combine("wwwroot/hinh/hanghoa", product.HinhAnh);
@@ -263,23 +281,19 @@ namespace TechStore.Areas.Admin.Controllers
             }
         }
 
-        // --- API BẬT TẮT TRẠNG THÁI (FIX LỖI KẾT NỐI) ---
-        [Route("ToggleStatus/{id}")] // Định tuyến rõ ràng
+        [Route("ToggleStatus/{id}")]
         [HttpPost]
         public async Task<IActionResult> ToggleStatus(int id)
         {
             try
             {
                 var product = await _db.HangHoas.FindAsync(id);
-                if (product == null) return Json(new { success = false, message = "Không tìm thấy sản phẩm" });
+                if (product == null) return Json(new { success = false, message = "Không tìm thấy" });
 
-                // Đảo trạng thái: Nếu đang null hoặc true -> false, ngược lại -> true
-                product.HieuLuc = !(product.HieuLuc ?? true); 
-                
+                product.HieuLuc = !(product.HieuLuc ?? true);
                 _db.Update(product);
                 await _db.SaveChangesAsync();
-
-                return Json(new { success = true, message = product.HieuLuc == true ? "Đã HIỆN sản phẩm" : "Đã ẨN sản phẩm" });
+                return Json(new { success = true, message = "Cập nhật trạng thái thành công!" });
             }
             catch (Exception ex)
             {
@@ -287,4 +301,4 @@ namespace TechStore.Areas.Admin.Controllers
             }
         }
     }
-}
+}   

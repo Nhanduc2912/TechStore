@@ -6,12 +6,14 @@ using TechStore.Areas.Admin.Attributes;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace TechStore.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Route("admin/danhmuc")]
-    [AdminOnly] // Đảm bảo chỉ Admin mới vào được
+    [AdminOnly]
     public class DanhMucAdminController : Controller
     {
         private readonly TechStoreContext _db;
@@ -28,7 +30,7 @@ namespace TechStore.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var categories = await _db.DanhMucs
-                .Include(d => d.HangHoas) // Include để đếm số sản phẩm con
+                .Include(d => d.HangHoas)
                 .ToListAsync();
             return View(categories);
         }
@@ -43,15 +45,33 @@ namespace TechStore.Areas.Admin.Controllers
 
         [Route("store")]
         [HttpPost]
-        public async Task<IActionResult> Store([Bind("TenDm,HinhAnh")] DanhMuc model) 
+        public async Task<IActionResult> Store([Bind("TenDm,HinhAnh")] DanhMuc model, IFormFile? hinhanh)
         {
-            // Lưu ý: Đã bỏ "MoTa" khỏi Bind vì DB không có cột này
             try
             {
                 if (ModelState.IsValid)
                 {
+                    // Xử lý upload ảnh
+                    if (hinhanh != null && hinhanh.Length > 0)
+                    {
+                        var fileName = Guid.NewGuid() + Path.GetExtension(hinhanh.FileName);
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/hinh/danhmuc", fileName);
+                        
+                        // FIX LỖI: Tạo thư mục nếu chưa có
+                        var dir = Path.GetDirectoryName(filePath);
+                        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) 
+                            Directory.CreateDirectory(dir);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await hinhanh.CopyToAsync(stream);
+                        }
+                        model.HinhAnh = fileName;
+                    }
+
                     _db.DanhMucs.Add(model);
                     await _db.SaveChangesAsync();
+
                     TempData["Success"] = "Thêm danh mục thành công!";
                     return RedirectToAction("Index");
                 }
@@ -76,16 +96,51 @@ namespace TechStore.Areas.Admin.Controllers
 
         [Route("update/{id}")]
         [HttpPost]
-        public async Task<IActionResult> Update(int id, [Bind("MaDm,TenDm,HinhAnh")] DanhMuc model)
+        public async Task<IActionResult> Update(int id, [Bind("MaDm,TenDm,HinhAnh")] DanhMuc model, IFormFile? hinhanh)
         {
             if (id != model.MaDm) return NotFound();
 
             try
             {
+                // Load lại entity cũ để lấy ảnh cũ (nếu không chọn ảnh mới)
+                var existingCategory = await _db.DanhMucs.AsNoTracking().FirstOrDefaultAsync(x => x.MaDm == id);
+                if (existingCategory == null) return NotFound();
+
                 if (ModelState.IsValid)
                 {
+                    if (hinhanh != null && hinhanh.Length > 0)
+                    {
+                        // 1. Xóa ảnh cũ nếu có
+                        if (!string.IsNullOrEmpty(existingCategory.HinhAnh))
+                        {
+                            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/hinh/danhmuc", existingCategory.HinhAnh);
+                            if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                        }
+
+                        // 2. Lưu ảnh mới
+                        var fileName = Guid.NewGuid() + Path.GetExtension(hinhanh.FileName);
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/hinh/danhmuc", fileName);
+                        
+                        // FIX LỖI: Tạo thư mục nếu chưa có
+                        var dir = Path.GetDirectoryName(filePath);
+                        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) 
+                            Directory.CreateDirectory(dir);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await hinhanh.CopyToAsync(stream);
+                        }
+                        model.HinhAnh = fileName;
+                    }
+                    else
+                    {
+                        // Giữ nguyên ảnh cũ
+                        model.HinhAnh = existingCategory.HinhAnh;
+                    }
+
                     _db.Update(model);
                     await _db.SaveChangesAsync();
+
                     TempData["Success"] = "Cập nhật danh mục thành công!";
                     return RedirectToAction("Index");
                 }
@@ -98,7 +153,7 @@ namespace TechStore.Areas.Admin.Controllers
             }
         }
 
-        // --- XÓA (AJAX) ---
+        // --- XÓA ---
         [Route("delete/{id}")]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
@@ -111,10 +166,17 @@ namespace TechStore.Areas.Admin.Controllers
 
                 if (category == null) return NotFound();
 
-                // Kiểm tra ràng buộc: Nếu danh mục có sản phẩm thì không cho xóa
+                // Kiểm tra ràng buộc
                 if (category.HangHoas.Any())
                 {
-                    return Json(new { success = false, message = "Không thể xóa! Danh mục này đang chứa sản phẩm." });
+                    return Json(new { success = false, message = "Không thể xóa! Danh mục này đang chứa " + category.HangHoas.Count + " sản phẩm." });
+                }
+
+                // Xóa ảnh
+                if (!string.IsNullOrEmpty(category.HinhAnh))
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/hinh/danhmuc", category.HinhAnh);
+                    if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
                 }
 
                 _db.DanhMucs.Remove(category);

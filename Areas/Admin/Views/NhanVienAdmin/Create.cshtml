@@ -1,0 +1,93 @@
+@model TechStore.Models.NhanVien
+@{
+    ViewData["Title"] = "Thêm nhân viên mới";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="page-header">
+    <h1><i class="bi bi-person-plus-fill me-2"></i>Thêm nhân viên mới</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold py-3 text-uppercase text-primary">
+                <i class="bi bi-info-circle me-1"></i> Thông tin hồ sơ & Tài khoản
+            </div>
+            <div class="card-body">
+                <form asp-action="Store" method="post">
+                    
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger mb-4">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+                        </div>
+                    }
+
+                    <!-- 1. THÔNG TIN CÁ NHÂN -->
+                    <h6 class="text-muted border-bottom pb-2 mb-3 small fw-bold">THÔNG TIN CÁ NHÂN</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="HoTen" class="form-label fw-bold">Họ và tên <span class="text-danger">*</span></label>
+                            <input asp-for="HoTen" class="form-control" required placeholder="Nguyễn Văn A" />
+                            <span asp-validation-for="HoTen" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NgaySinh" class="form-label fw-bold">Ngày sinh</label>
+                            <input type="date" asp-for="NgaySinh" class="form-control" />
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="DiaChi" class="form-label fw-bold">Địa chỉ thường trú</label>
+                            <input asp-for="DiaChi" class="form-control" placeholder="Số nhà, đường, phường/xã..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NgayVaoLam" class="form-label fw-bold">Ngày vào làm</label>
+                            <input type="date" asp-for="NgayVaoLam" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+
+                    <!-- 2. TẠO TÀI KHOẢN ĐĂNG NHẬP -->
+                    <h6 class="text-muted border-bottom pb-2 mb-3 small fw-bold mt-4">THIẾT LẬP TÀI KHOẢN HỆ THỐNG</h6>
+                    <div class="bg-light p-3 rounded border">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Tên đăng nhập <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
+                                    <input type="text" name="TenDangNhap" class="form-control" required placeholder="username" />
+                                </div>
+                                <small class="text-muted">Dùng để đăng nhập vào trang quản trị.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Mật khẩu <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-key"></i></span>
+                                    <input type="password" name="MatKhau" class="form-control" required placeholder="******" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" name="Email" class="form-control" required placeholder="email@example.com" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Số điện thoại</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-phone"></i></span>
+                                    <input type="text" name="Sdt" class="form-control" placeholder="09xxxx" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4 pt-3 border-top justify-content-end">
+                        <a href="/Admin/NhanVien" class="btn btn-secondary px-4">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-success px-4 fw-bold"><i class="bi bi-check-lg me-2"></i> Lưu nhân viên</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
