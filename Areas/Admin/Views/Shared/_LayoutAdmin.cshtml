@@ -187,7 +187,7 @@
                     <i class="bi bi-speedometer2"></i> Tổng quan
                 </a>
                 
-                <div class="text-uppercase small text-muted fw-bold px-3 mt-3 mb-1" style="font-size: 0.7rem;">Kinh doanh</div>
+                <div class="text-uppercase small  fw-bold px-3 mt-3 mb-1" style="font-size: 0.7rem;">Kinh doanh</div>
 
                 <a href="/Admin/DonHang" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "DonHangAdmin" ? "active" : "")">
                     <i class="bi bi-receipt"></i> Đơn hàng
@@ -206,7 +206,7 @@
                     <i class="bi bi-award"></i> Thương hiệu
                 </a>
 
-                <div class="text-uppercase small text-muted fw-bold px-3 mt-3 mb-1" style="font-size: 0.7rem;">Con người</div>
+                <div class="text-uppercase small  fw-bold px-3 mt-3 mb-1" style="font-size: 0.7rem;">Con người</div>
 
                 <a href="/Admin/KhachHang" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "KhachHangAdmin" ? "active" : "")">
                     <i class="bi bi-people"></i> Khách hàng
@@ -217,10 +217,22 @@
                     <i class="bi bi-person-badge"></i> Nhân viên
                 </a>
 
-                <div class="text-uppercase small text-muted fw-bold px-3 mt-3 mb-1" style="font-size: 0.7rem;">Hệ thống</div>
+                <div class="text-uppercase small fw-bold px-3 mt-3 mb-1" style="font-size: 0.7rem;">Hệ thống</div>
 
-                <a href="/Admin/ThongKe" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "ThongKeAdmin" ? "active" : "")">
-                    <i class="bi bi-graph-up"></i> Báo cáo
+                <a href="/Admin/ThongKe/DoanhThu" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "DoanhThu" ? "active" : "")">
+                    <i class="bi bi-graph-up"></i> Doanh thu
+                </a>
+
+                <a href="/Admin/ThongKe/SanPham" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "SanPham" ? "active" : "")">
+                    <i class="bi bi-box-seam"></i> Sản phẩm bán chạy
+                </a>
+
+                <a href="/Admin/ThongKe/KhachHang" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "KhachHang" ? "active" : "")">
+                    <i class="bi bi-people"></i> Khách hàng VIP
+                </a>
+
+                <a href="/Admin/ThongKe/TonKho" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "TonKho" ? "active" : "")">
+                    <i class="bi bi-shop"></i> Tồn kho
                 </a>
 
                 <!-- Bottom Links -->

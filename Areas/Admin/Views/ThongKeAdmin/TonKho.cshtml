@@ -1,0 +1,85 @@
+@model IEnumerable<TechStore.ViewModels.BaoCaoTonKhoVM>
+@{
+    ViewData["Title"] = "Báo cáo tồn kho";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h2 class="fw-bold text-primary mb-4"><i class="bi bi-box-seam"></i> Báo cáo Tồn Kho</h2>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card bg-info text-white border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Tổng giá trị tồn kho</h5>
+                <h2 class="fw-bold">@Convert.ToDouble(ViewBag.TongGiaTriTonKho).ToString("#,##0")₫</h2>
+                <small>(Theo giá nhập)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-dark border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Số mặt hàng</h5>
+                <h2 class="fw-bold">@ViewBag.SoMatHang</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Cảnh báo hết hàng</h5>
+                <h2 class="fw-bold">@ViewBag.SoMatHangHeo</h2>
+                <small>(Số lượng < 10)</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <input type="text" id="searchBox" class="form-control" placeholder="Tìm kiếm sản phẩm...">
+    </div>
+    <div class="table-responsive" style="max-height: 600px;">
+        <table class="table table-hover align-middle mb-0" id="inventoryTable">
+            <thead class="bg-light sticky-top">
+                <tr>
+                    <th>Mã SP</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Danh mục</th>
+                    <th class="text-center">Số lượng</th>
+                    <th class="text-end">Giá nhập</th>
+                    <th class="text-end pe-4">Giá trị tồn</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="@(item.SoLuong < 10 ? "table-danger" : "")">
+                        <td>@item.MaHh</td>
+                        <td class="fw-bold">@item.TenHh</td>
+                        <td><span class="badge bg-light text-dark border">@item.DanhMuc</span></td>
+                        <td class="text-center">
+                            @if(item.SoLuong == 0) { <span class="badge bg-danger">Hết hàng</span> }
+                            else if(item.SoLuong < 10) { <span class="badge bg-warning text-dark">@item.SoLuong</span> }
+                            else { <span class="fw-bold text-success">@item.SoLuong</span> }
+                        </td>
+                        <td class="text-end">@item.GiaNhap.ToString("#,##0")</td>
+                        <td class="text-end pe-4 fw-bold">@item.GiaTriTonKho.ToString("#,##0")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Script tìm kiếm đơn giản
+    document.getElementById('searchBox').addEventListener('keyup', function() {
+        var val = this.value.toLowerCase();
+        var rows = document.querySelectorAll('#inventoryTable tbody tr');
+        rows.forEach(r => {
+            var text = r.innerText.toLowerCase();
+            r.style.display = text.includes(val) ? '' : 'none';
+        });
+    });
+</script>

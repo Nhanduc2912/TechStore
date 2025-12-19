@@ -100,6 +100,22 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcU2hhcmVkXF9MYXlvdXRBZG1pbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/C\#/ASP.NET/TechStore/TechStore/Areas/Admin/Views/ThongKeAdmin/DoanhThu.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcVGhvbmdLZUFkbWluXERvYW5oVGh1LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/C\#/ASP.NET/TechStore/TechStore/Areas/Admin/Views/ThongKeAdmin/KhachHang.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcVGhvbmdLZUFkbWluXEtoYWNoSGFuZy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/C\#/ASP.NET/TechStore/TechStore/Areas/Admin/Views/ThongKeAdmin/SanPham.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcVGhvbmdLZUFkbWluXFNhblBoYW0uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/C\#/ASP.NET/TechStore/TechStore/Areas/Admin/Views/ThongKeAdmin/TonKho.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcVGhvbmdLZUFkbWluXFRvbktoby5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/C\#/ASP.NET/TechStore/TechStore/Areas/Admin/Views/ThuongHieuAdmin/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcVGh1b25nSGlldUFkbWluXENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

@@ -32,15 +32,26 @@ namespace TechStore.Areas.Admin.Controllers
                 ViewBag.TongSanPham = await _db.HangHoas.CountAsync();
                 ViewBag.TongKhachHang = await _db.KhachHangs.CountAsync();
                 ViewBag.TongDonHang = await _db.HoaDons.CountAsync();
-                ViewBag.DoanhThu = await _db.ChiTietHoaDons.SumAsync(ct => ct.DonGia * ct.SoLuong);
+                
+                // --- SỬA LOGIC TẠI ĐÂY ---
+                // Chỉ tính tổng tiền của các đơn hàng ĐÃ HOÀN THÀNH (Trạng thái = 3)
+                // Logic cũ: _db.ChiTietHoaDons.SumAsync(...) -> Sai vì tính cả đơn hủy/mới
+                ViewBag.DoanhThu = await _db.HoaDons
+                    .Where(h => h.MaTrangThai == 3) 
+                    .SelectMany(h => h.ChiTietHoaDons)
+                    .SumAsync(ct => ct.DonGia * ct.SoLuong);
+                // -------------------------
 
                 // --- 2. BIỂU ĐỒ DOANH THU (LINE CHART) ---
-                // Logic lọc theo thời gian (Demo: Mặc định 7 ngày qua)
+                // Logic lọc theo thời gian (Demo: Mặc định 30 ngày qua)
                 var today = DateTime.Today;
-                var sevenDaysAgo = today.AddDays(-6);
+                var sevenDaysAgo = today.AddDays(-29); // Lấy 30 ngày
                 
                 var revenueData = await _db.HoaDons
-                    .Where(h => h.NgayDat >= sevenDaysAgo)
+                    // --- SỬA LOGIC BIỂU ĐỒ ---
+                    // Thêm điều kiện MaTrangThai == 3 để biểu đồ khớp với số tổng
+                    .Where(h => h.NgayDat >= sevenDaysAgo && h.MaTrangThai == 3)
+                    // -------------------------
                     .SelectMany(h => h.ChiTietHoaDons)
                     .Select(ct => new { 
                         Date = ct.MaHdNavigation!.NgayDat, 
@@ -48,6 +59,7 @@ namespace TechStore.Areas.Admin.Controllers
                     })
                     .ToListAsync();
 
+                // Group dữ liệu (Client evaluation)
                 var revenueGrouped = revenueData
                     .GroupBy(x => x.Date.HasValue ? x.Date.Value.Date : DateTime.MinValue)
                     .Select(g => new { Date = g.Key, Revenue = g.Sum(x => x.Total) })
@@ -56,10 +68,12 @@ namespace TechStore.Areas.Admin.Controllers
                 var labels = new List<string>();
                 var dataRevenue = new List<double>();
 
-                for (int i = 0; i < 7; i++)
+                // Loop 30 ngày để lấp đầy các ngày không có doanh thu bằng số 0
+                for (int i = 0; i < 30; i++)
                 {
                     var date = sevenDaysAgo.AddDays(i);
                     labels.Add(date.ToString("dd/MM"));
+                    
                     var record = revenueGrouped.FirstOrDefault(r => r.Date == date);
                     dataRevenue.Add(record != null ? record.Revenue : 0);
                 }
@@ -87,8 +101,10 @@ namespace TechStore.Areas.Admin.Controllers
 
                 // --- 4. CÁC WIDGETS DỮ LIỆU ---
                 
-                // Top 5 Sản phẩm bán chạy
+                // Top 5 Sản phẩm bán chạy (Chỉ tính số lượng thực tế trong đơn hoàn thành hoặc đang giao)
+                // Ở đây mình giữ nguyên logic đếm số lượng, nhưng nếu muốn chặt chẽ có thể thêm Where status != -1
                 ViewBag.TopProducts = await _db.ChiTietHoaDons
+                    .Include(ct => ct.MaHhNavigation) // Include để tránh lỗi null tên
                     .GroupBy(ct => ct.MaHh)
                     .Select(g => new {
                         Name = g.First().MaHhNavigation != null ? g.First().MaHhNavigation!.TenHh : "Unknown",
