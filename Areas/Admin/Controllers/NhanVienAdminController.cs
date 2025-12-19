@@ -64,7 +64,7 @@ namespace TechStore.Areas.Admin.Controllers
                         MatKhau = MatKhau, 
                         Email = Email,
                         Sdt = Sdt,
-                        MaVaiTro = 2, 
+                        MaVaiTro = 1, 
                         TrangThai = true,
                         NgayTao = DateTime.Now
                     };

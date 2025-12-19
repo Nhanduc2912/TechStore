@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TechStore.Data;
 using TechStore.Models;
+using System; // Cần thiết cho Math.Ceiling
 
 namespace TechStore.Controllers
 {
@@ -14,30 +15,31 @@ namespace TechStore.Controllers
             _context = context;
         }
 
-        // ACTION DUY NHẤT XỬ LÝ MỌI BỘ LỌC
-        public IActionResult Index(string? query, int? loai, double? min, double? max, int? sort)
+        // --- ACTION INDEX (ĐÃ CẬP NHẬT PHÂN TRANG) ---
+        // Thêm tham số 'page' có giá trị mặc định là 1
+        public IActionResult Index(string? query, int? loai, double? min, double? max, int? sort, int page = 1)
         {
+            // Số lượng sản phẩm trên mỗi trang
+            int pageSize = 9; 
+
             var hangHoas = _context.HangHoas.AsQueryable();
 
-            // 1. QUAN TRỌNG: Chỉ lấy sản phẩm đang có hiệu lực (Chưa bị xóa mềm)
-            // Xử lý cả trường hợp HieuLuc là null (coi như là hiện)
+            // 1. Chỉ lấy sản phẩm đang có hiệu lực
             hangHoas = hangHoas.Where(p => p.HieuLuc == true || p.HieuLuc == null);
 
-            // 2. Lọc theo Từ khóa (Search)
+            // 2. Lọc theo Từ khóa
             if (!string.IsNullOrEmpty(query))
             {
                 hangHoas = hangHoas.Where(p => p.TenHh.Contains(query));
-                ViewBag.Keyword = query;
             }
 
-            // 3. Lọc theo Danh mục (Category)
+            // 3. Lọc theo Danh mục
             if (loai.HasValue)
             {
                 hangHoas = hangHoas.Where(p => p.MaDm == loai.Value);
-                ViewBag.Loai = loai.Value;
             }
 
-            // 4. Lọc theo Khoảng giá (Price Range)
+            // 4. Lọc theo Khoảng giá
             if (min.HasValue)
             {
                 hangHoas = hangHoas.Where(p => p.DonGia >= min.Value);
@@ -46,11 +48,8 @@ namespace TechStore.Controllers
             {
                 hangHoas = hangHoas.Where(p => p.DonGia <= max.Value);
             }
-            
-            ViewBag.Min = min; 
-            ViewBag.Max = max;
 
-            // 5. Sắp xếp (Sorting)
+            // 5. Sắp xếp
             switch (sort)
             {
                 case 1: // Giá tăng dần
@@ -66,9 +65,33 @@ namespace TechStore.Controllers
                     hangHoas = hangHoas.OrderByDescending(p => p.MaHh);
                     break;
             }
+
+            // --- XỬ LÝ PHÂN TRANG ---
+            // Tính tổng số lượng kết quả (để tính số trang)
+            int totalItems = hangHoas.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // Kiểm tra trang hợp lệ
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            // Cắt dữ liệu (Skip & Take)
+            var result = hangHoas
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // Gửi dữ liệu bổ sung sang View để giữ trạng thái bộ lọc và phân trang
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            
+            ViewBag.Keyword = query;
+            ViewBag.Loai = loai;
+            ViewBag.Min = min;
+            ViewBag.Max = max;
             ViewBag.Sort = sort;
 
-            return View(hangHoas.ToList());
+            return View(result);
         }
 
         public IActionResult Search(string? query)
@@ -91,7 +114,7 @@ namespace TechStore.Controllers
             data.SoLuotXem = (data.SoLuotXem ?? 0) + 1;
             _context.SaveChanges();
 
-            // Lấy sản phẩm tương tự (cũng phải check HieuLuc)
+            // Lấy sản phẩm tương tự
             var sanPhamTuongTu = _context.HangHoas
                 .Where(p => p.MaDm == data.MaDm && p.MaHh != data.MaHh && (p.HieuLuc == true || p.HieuLuc == null))
                 .Take(4)

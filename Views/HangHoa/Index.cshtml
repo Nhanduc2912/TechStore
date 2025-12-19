@@ -6,69 +6,41 @@
     var currentSort = ViewBag.Sort as int?;
     var currentMin = ViewBag.Min as double?;
     var currentMax = ViewBag.Max as double?;
+    
+    // Lấy thông tin phân trang
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
 }
 
-<!-- CSS RIÊNG CHO NHÃN HẾT HÀNG (Copy từ Home/Index) -->
 <style>
-    /* Lớp phủ mờ khi hết hàng */
     .sold-out-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.6); /* Nền trắng mờ */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10;
-        border-radius: 4px;
-        pointer-events: none;
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(255, 255, 255, 0.6);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 10; border-radius: 4px; pointer-events: none;
     }
-    
-    /* Chữ HẾT HÀNG nằm giữa */
     .sold-out-text {
-        background-color: #333;
-        color: white;
-        padding: 8px 15px;
-        font-weight: bold;
-        font-size: 1.2rem;
-        text-transform: uppercase;
-        transform: rotate(-10deg);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        background-color: #333; color: white; padding: 8px 15px;
+        font-weight: bold; font-size: 1.2rem; text-transform: uppercase;
+        transform: rotate(-10deg); box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         border: 2px solid white;
     }
-
-    /* Làm xám ảnh sản phẩm khi hết hàng */
     .product-card.sold-out .product-img-container img {
-        filter: grayscale(100%);
-        opacity: 0.6;
+        filter: grayscale(100%); opacity: 0.6;
     }
-    
-    /* Các style khác */
     .two-lines {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden;
     }
-    .product-card {
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-    }
+    .product-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
 </style>
 
-<!-- Breadcrumb (Thanh điều hướng) -->
 <div class="bg-light py-3 mb-4">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
-                <!-- Hiển thị tiêu đề động -->
                 @if (ViewBag.Keyword != null)
                 {
                      <li class="breadcrumb-item active fw-bold" aria-current="page">Tìm kiếm: "@ViewBag.Keyword"</li>
@@ -84,38 +56,30 @@
 
 <div class="container pb-5">
     <div class="row">
-        <!-- BỘ LỌC BÊN TRÁI (Sidebar) -->
         <div class="col-md-3 d-none d-md-block">
-            
-            <!-- Form Lọc Giá & Danh mục -->
             <form asp-action="Index" method="get" id="filterForm">
-                
-                <!-- Giữ lại từ khóa tìm kiếm và loại nếu có (để lọc chồng nhau) -->
                 @if(ViewBag.Keyword != null) { <input type="hidden" name="query" value="@ViewBag.Keyword" /> }
                 @if(ViewBag.Loai != null) { <input type="hidden" name="loai" value="@ViewBag.Loai" /> }
-                <!-- Giữ lại sắp xếp nếu đang filter giá -->
                 @if(currentSort != null) { <input type="hidden" name="sort" value="@currentSort" /> }
 
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white fw-bold text-uppercase py-3">Danh mục</div>
                     <div class="list-group list-group-flush">
-                        <!-- Link "Tất cả" -->
-                        <a href="/HangHoa/Index" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == null ? "text-danger fw-bold" : "")">Tất cả sản phẩm</a>
+                        <a href="@Url.Action("Index", new { query = ViewBag.Keyword, sort = currentSort, min = currentMin, max = currentMax })" 
+                           class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == null ? "text-danger fw-bold" : "")">Tất cả sản phẩm</a>
                         
-                        <!-- Các link danh mục với ID chuẩn (1-6) theo Database của bạn -->
-                        <a href="/HangHoa/Index?loai=1" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 1 ? "text-danger fw-bold" : "")">Laptop Gaming</a>
-                        <a href="/HangHoa/Index?loai=2" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 2 ? "text-danger fw-bold" : "")">Vi xử lý (CPU)</a>
-                        <a href="/HangHoa/Index?loai=3" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 3 ? "text-danger fw-bold" : "")">Card màn hình (VGA)</a>
-                        <a href="/HangHoa/Index?loai=4" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 4 ? "text-danger fw-bold" : "")">Bo mạch chủ</a>
-                        <a href="/HangHoa/Index?loai=5" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 5 ? "text-danger fw-bold" : "")">Màn hình</a>
-                        <a href="/HangHoa/Index?loai=6" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 6 ? "text-danger fw-bold" : "")">RAM & Ổ cứng</a>
+                        <a href="@Url.Action("Index", new { loai = 1, query = ViewBag.Keyword, sort = currentSort, min = currentMin, max = currentMax })" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 1 ? "text-danger fw-bold" : "")">Laptop Gaming</a>
+                        <a href="@Url.Action("Index", new { loai = 2, query = ViewBag.Keyword, sort = currentSort, min = currentMin, max = currentMax })" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 2 ? "text-danger fw-bold" : "")">Vi xử lý (CPU)</a>
+                        <a href="@Url.Action("Index", new { loai = 3, query = ViewBag.Keyword, sort = currentSort, min = currentMin, max = currentMax })" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 3 ? "text-danger fw-bold" : "")">Card màn hình (VGA)</a>
+                        <a href="@Url.Action("Index", new { loai = 4, query = ViewBag.Keyword, sort = currentSort, min = currentMin, max = currentMax })" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 4 ? "text-danger fw-bold" : "")">Bo mạch chủ</a>
+                        <a href="@Url.Action("Index", new { loai = 5, query = ViewBag.Keyword, sort = currentSort, min = currentMin, max = currentMax })" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 5 ? "text-danger fw-bold" : "")">Màn hình</a>
+                        <a href="@Url.Action("Index", new { loai = 6, query = ViewBag.Keyword, sort = currentSort, min = currentMin, max = currentMax })" class="list-group-item list-group-item-action border-0 @(ViewBag.Loai == 6 ? "text-danger fw-bold" : "")">RAM & Ổ cứng</a>
                     </div>
                 </div>
             
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white fw-bold text-uppercase py-3">Khoảng giá</div>
                     <div class="card-body">
-                        <!-- Dùng Radio Button để chọn 1 khoảng giá duy nhất -->
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" name="priceRange" id="p_all" value="all" 
                                    onchange="setPrice(null, null)" @(currentMin == null && currentMax == null ? "checked" : "")>
@@ -137,7 +101,6 @@
                             <label class="form-check-label small" for="p3">Trên 20 triệu</label>
                         </div>
 
-                        <!-- Input ẩn để chứa giá trị min/max thực gửi đi -->
                         <input type="hidden" name="min" id="minPrice" value="@currentMin" />
                         <input type="hidden" name="max" id="maxPrice" value="@currentMax" />
 
@@ -147,7 +110,6 @@
             </form>
         </div>
 
-        <!-- DANH SÁCH SẢN PHẨM BÊN PHẢI -->
         <div class="col-md-9">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold mb-0">
@@ -159,10 +121,8 @@
                     {
                         <span>Tất cả sản phẩm</span>
                     }
-                    <span class="fs-6 text-muted fw-normal">(@Model.Count() sản phẩm)</span>
-                </h4>
+                    </h4>
                 
-                <!-- Bộ Sắp Xếp -->
                 <div class="d-flex align-items-center">
                     <label class="me-2 small text-muted text-nowrap">Sắp xếp:</label>
                     <select class="form-select form-select-sm border-0 shadow-sm" style="width: 170px;" onchange="applySort(this.value)">
@@ -179,13 +139,10 @@
                 <div class="row row-cols-2 row-cols-lg-3 g-3">
                     @foreach (var item in Model)
                     {
-                        // Kiểm tra tồn kho
                         var isOutOfStock = (item.SoLuong ?? 0) <= 0;
 
                         <div class="col">
                             <div class="product-card @(isOutOfStock ? "sold-out" : "") h-100 position-relative d-flex flex-column">
-                                
-                                <!-- Lớp phủ HẾT HÀNG -->
                                 @if (isOutOfStock)
                                 {
                                     <div class="sold-out-overlay">
@@ -221,7 +178,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Hot Badge demo -->
                                 @if(!isOutOfStock && item.SoLuotXem > 100) {
                                     <div class="position-absolute top-0 start-0 m-2 badge bg-danger">HOT</div>
                                 }
@@ -229,7 +185,38 @@
                         </div>
                     }
                 </div>
-            }
+
+                @if (totalPages > 1)
+                {
+                    <div class="d-flex justify-content-center mt-5">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination shadow-sm">
+                                
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1, query = ViewBag.Keyword, loai = ViewBag.Loai, min = currentMin, max = currentMax, sort = currentSort })" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+
+                                @for (int i = 1; i <= totalPages; i++)
+                                {
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { page = i, query = ViewBag.Keyword, loai = ViewBag.Loai, min = currentMin, max = currentMax, sort = currentSort })">
+                                            @i
+                                        </a>
+                                    </li>
+                                }
+
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1, query = ViewBag.Keyword, loai = ViewBag.Loai, min = currentMin, max = currentMax, sort = currentSort })" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
+                }
             else
             {
                 <div class="text-center py-5 bg-white rounded shadow-sm">
@@ -244,19 +231,16 @@
 </div>
 
 <script>
-    // Hàm cập nhật giá trị min/max vào input ẩn khi chọn Radio
     function setPrice(min, max) {
         document.getElementById('minPrice').value = min;
         document.getElementById('maxPrice').value = max;
     }
 
-    // Hàm xử lý khi chọn Sắp xếp
+    // Cập nhật hàm applySort để giữ lại tham số page (reset về 1 khi sort) và các filter khác
     function applySort(sortValue) {
-        // Lấy URL hiện tại
         var url = new URL(window.location.href);
-        // Cập nhật tham số 'sort'
         url.searchParams.set('sort', sortValue);
-        // Chuyển trang
+        url.searchParams.set('page', 1); // Khi sort lại thì nên về trang 1
         window.location.href = url.toString();
     }
 </script>

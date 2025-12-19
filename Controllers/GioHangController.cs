@@ -25,9 +25,18 @@ namespace TechStore.Controllers
             return View(Cart);
         }
 
-        // ... (Giữ nguyên các hàm AddToCart, BuyNow, UpdateCart, RemoveCart) ...
         public IActionResult AddToCart(int id, int quantity = 1)
         {
+            // 1. CHẶN ADMIN MUA HÀNG
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            if (vaiTro == "Admin")
+            {
+                TempData["Error"] = "Quản trị viên không thể mua hàng! Vui lòng đăng nhập tài khoản khách.";
+                // Trả về trang trước đó
+                string referer = Request.Headers["Referer"].ToString();
+                return Redirect(!string.IsNullOrEmpty(referer) ? referer : "/Home/Index");
+            }
+
             var gioHang = Cart;
             var item = gioHang.SingleOrDefault(p => p.MaHh == id);
             var hangHoa = _context.HangHoas.SingleOrDefault(p => p.MaHh == id);
@@ -66,12 +75,23 @@ namespace TechStore.Controllers
             }
 
             HttpContext.Session.Set(CART_KEY, gioHang);
+            
+            // Nếu mua từ trang chi tiết hoặc home, hiển thị thông báo nhỏ
+            TempData["Success"] = "Đã thêm vào giỏ hàng!";
             return RedirectToAction("Index");
         }
 
         [HttpPost]
         public IActionResult BuyNow(int id, int quantity = 1)
         {
+            // Logic AddToCart đã có chặn Admin, nhưng kiểm tra lại ở đây cho chắc
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            if (vaiTro == "Admin")
+            {
+                TempData["Error"] = "Quản trị viên không thể mua hàng!";
+                return RedirectToAction("Detail", "HangHoa", new { id = id });
+            }
+
             var hangHoa = _context.HangHoas.Find(id);
             if (hangHoa == null || hangHoa.HieuLuc == false) return NotFound();
 
@@ -121,8 +141,6 @@ namespace TechStore.Controllers
             }
             return RedirectToAction("Index");
         }
-        // ... (Kết thúc phần giữ nguyên) ...
-
 
         // --- CHECKOUT GET: KIỂM TRA ĐỊA CHỈ TRONG PROFILE ---
         [HttpGet]
@@ -130,35 +148,51 @@ namespace TechStore.Controllers
         {
             if (Cart.Count == 0) return RedirectToAction("Index");
 
+            // 1. CHẶN ADMIN (Tránh lỗi FormatException)
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            if (vaiTro == "Admin")
+            {
+                TempData["Error"] = "Quản trị viên không được phép thanh toán!";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // 2. LẤY MAKH AN TOÀN (Dùng TryParse)
             var maKhStr = HttpContext.Session.GetString("MaKh");
-            if (maKhStr == null) return RedirectToAction("Index", "Home");
-            var maKh = int.Parse(maKhStr);
+            if (string.IsNullOrEmpty(maKhStr)) 
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = "/GioHang/Checkout" });
+            }
+
+            if (!int.TryParse(maKhStr, out int maKh))
+            {
+                // Nếu không parse được (ví dụ session bị lỗi hoặc là admin lọt lưới), đá về trang chủ
+                return RedirectToAction("Index", "Home");
+            }
             
             var khachHang = _context.KhachHangs
                 .Include(k => k.MaTkNavigation) 
                 .FirstOrDefault(k => k.MaKh == maKh);
             var taiKhoan = khachHang?.MaTkNavigation;
 
-            // 1. Kiểm tra xác thực (Giữ nguyên)
+            // 3. Kiểm tra xác thực
             if (taiKhoan != null && (taiKhoan.EmailDaXacThuc != true || taiKhoan.SDTDaXacThuc != true))
             {
                 TempData["Warning"] = "Bạn cần xác thực Email và Số điện thoại trước khi đặt hàng.";
                 return RedirectToAction("Profile", "KhachHang");
             }
 
-            // 2. KIỂM TRA ĐỊA CHỈ (LOGIC MỚI)
-            // Nếu chưa có địa chỉ -> Đá về Profile để cập nhật
+            // 4. KIỂM TRA ĐỊA CHỈ
             if (string.IsNullOrEmpty(khachHang?.DiaChi))
             {
                 TempData["Warning"] = "Vui lòng cập nhật địa chỉ giao hàng trong hồ sơ trước khi thanh toán!";
                 return RedirectToAction("Profile", "KhachHang");
             }
 
-            // Gửi thông tin xuống View để hiển thị (Read-only)
+            // Gửi thông tin xuống View
             ViewBag.NguoiNhan = khachHang.HoTen;
             ViewBag.Email = khachHang.Email;
             ViewBag.DienThoai = taiKhoan?.Sdt;
-            ViewBag.DiaChi = khachHang.DiaChi; // Địa chỉ lấy từ DB
+            ViewBag.DiaChi = khachHang.DiaChi;
 
             return View(Cart);
         }
@@ -169,9 +203,15 @@ namespace TechStore.Controllers
         {
             if (Cart.Count == 0) return RedirectToAction("Index");
 
+            // 1. CHẶN ADMIN
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            if (vaiTro == "Admin") return RedirectToAction("Index", "Home");
+
+            // 2. LẤY MAKH AN TOÀN
             var maKhStr = HttpContext.Session.GetString("MaKh");
-            if (maKhStr == null) return RedirectToAction("Index", "Home");
-            var maKh = int.Parse(maKhStr);
+            if (string.IsNullOrEmpty(maKhStr)) return RedirectToAction("Login", "Account");
+
+            if (!int.TryParse(maKhStr, out int maKh)) return RedirectToAction("Index", "Home");
 
             var khachHang = _context.KhachHangs
                 .Include(k => k.MaTkNavigation)
@@ -193,11 +233,11 @@ namespace TechStore.Controllers
                     {
                         MaKh = maKh,
                         NgayDat = DateTime.Now,
-                        HoTenNguoiNhan = khachHang.HoTen,   // Lấy từ Profile
-                        DiaChiNguoiNhan = khachHang.DiaChi, // Lấy từ Profile
-                        SdtnguoiNhan = taiKhoan?.Sdt,       // Lấy từ Profile
+                        HoTenNguoiNhan = khachHang.HoTen,   
+                        DiaChiNguoiNhan = khachHang.DiaChi, 
+                        SdtnguoiNhan = taiKhoan?.Sdt,       
                         GhiChu = GhiChu, 
-                        MaTrangThai = 0,
+                        MaTrangThai = 0, // Mới đặt
                         PhiVanChuyen = 30000 
                     };
 
@@ -207,12 +247,16 @@ namespace TechStore.Controllers
                     foreach (var item in Cart)
                     {
                         var product = _context.HangHoas.Find(item.MaHh);
+                        
+                        // Kiểm tra tồn kho nhưng KHÔNG TRỪ (để Admin duyệt mới trừ)
                         if (product == null || (product.SoLuong ?? 0) < item.SoLuong)
                         {
-                            throw new Exception($"Sản phẩm {item.TenHh} không đủ số lượng trong kho.");
+                            throw new Exception($"Sản phẩm {item.TenHh} không đủ số lượng trong kho (hoặc đã hết hàng).");
                         }
 
-                        product.SoLuong -= item.SoLuong;
+                        // --- QUAN TRỌNG: COMMENT DÒNG NÀY ĐỂ KHÔNG TRỪ KHO ---
+                        // product.SoLuong -= item.SoLuong; 
+                        // -----------------------------------------------------
                         
                         var chiTiet = new ChiTietHoaDon
                         {

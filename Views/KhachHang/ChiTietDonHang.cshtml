@@ -1,0 +1,68 @@
+@model TechStore.Models.HoaDon
+@{ 
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.MaHd;
+    // Tính tổng tiền
+    double tongTien = Model.ChiTietHoaDons.Sum(c => c.DonGia * c.SoLuong);
+    int trangThai = Model.MaTrangThai ?? 0;
+}
+
+<div class="container py-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between">
+            <h5 class="mb-0 fw-bold">Chi tiết đơn hàng #@Model.MaHd</h5>
+            <a asp-action="DonHang" class="btn btn-sm btn-light border">Quay lại</a>
+        </div>
+        <div class="card-body">
+            <div class="mb-4 pb-3 border-bottom">
+                <p class="mb-1"><strong>Người nhận:</strong> @Model.HoTenNguoiNhan</p>
+                
+                <p class="mb-1"><strong>SĐT:</strong> @Model.SdtnguoiNhan</p> 
+                
+                <p class="mb-1"><strong>Địa chỉ:</strong> @Model.DiaChiNguoiNhan</p>
+                <p class="mb-0"><strong>Ghi chú:</strong> <em class="text-muted">@(Model.GhiChu ?? "Không có")</em></p>
+            </div>
+
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th class="text-center">SL</th>
+                        <th class="text-end">Đơn giá</th>
+                        <th class="text-end">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var item in Model.ChiTietHoaDons)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="~/Hinh/HangHoa/@item.MaHhNavigation.HinhAnh" width="40" class="rounded border me-2">
+                                    <span>@item.MaHhNavigation.TenHh</span>
+                                </div>
+                            </td>
+                            <td class="text-center">@item.SoLuong</td>
+                            <td class="text-end">@item.DonGia.ToString("#,##0")</td>
+                            <td class="text-end fw-bold">@((item.SoLuong * item.DonGia).ToString("#,##0"))</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold pt-3">TỔNG CỘNG:</td>
+                        <td class="text-end fw-bold text-danger fs-5 pt-3">@tongTien.ToString("#,##0") đ</td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            @if(trangThai == 0)
+            {
+                <div class="mt-4 text-center">
+                    <a asp-action="HuyDonHang" asp-route-id="@Model.MaHd" class="btn btn-outline-danger w-100" onclick="return confirm('Hủy đơn này?');">
+                        Hủy Đơn Hàng Này
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

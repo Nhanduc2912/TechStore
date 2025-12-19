@@ -359,5 +359,58 @@ namespace TechStore.Controllers
 
             return Json(new { success = false, message = "Mã xác thực không đúng!" });
         }
+        // 1. KHÁCH HÀNG TỰ HỦY ĐƠN
+        public IActionResult HuyDonHang(int id)
+        {
+            var maKhStr = HttpContext.Session.GetString("MaKh");
+            if (maKhStr == null) return RedirectToAction("Index", "Home");
+
+            if (int.TryParse(maKhStr, out int maKh))
+            {
+                var donHang = _context.HoaDons.FirstOrDefault(h => h.MaHd == id && h.MaKh == maKh);
+
+                if (donHang != null)
+                {
+                    // Chỉ cho hủy khi đơn hàng là Mới (0) hoặc Đã duyệt (1)
+                    // (Tùy vào quy ước database của bạn: 0 là Mới hay 1 là Mới)
+                    // Giả sử: 0=Mới, 1=Đã duyệt, 2=Đang giao, 3=Hoàn thành, 4=Hủy
+                    if (donHang.MaTrangThai == 0 || donHang.MaTrangThai == 1)
+                    {
+                        donHang.MaTrangThai = -1; // Chuyển sang trạng thái Hủy
+                        
+                        // Lưu ý: Vì ta đã bỏ logic trừ kho lúc đặt, nên lúc hủy này KHÔNG cần cộng lại kho.
+                        
+                        _context.SaveChanges();
+                        TempData["Success"] = "Đã hủy đơn hàng thành công.";
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Đơn hàng đang giao hoặc đã hoàn thành, không thể hủy!";
+                    }
+                }
+            }
+            return RedirectToAction("DonHang"); // Quay lại trang lịch sử
+        }
+
+        // 2. XEM CHI TIẾT ĐƠN HÀNG
+        public IActionResult ChiTietDonHang(int id)
+        {
+            var maKhStr = HttpContext.Session.GetString("MaKh");
+            if (maKhStr == null) return RedirectToAction("Index", "Home");
+
+            if (int.TryParse(maKhStr, out int maKh))
+            {
+                var donHang = _context.HoaDons
+                    .Include(h => h.MaTrangThaiNavigation)
+                    .Include(h => h.ChiTietHoaDons)
+                    .ThenInclude(ct => ct.MaHhNavigation) // Load thông tin sản phẩm
+                    .FirstOrDefault(h => h.MaHd == id && h.MaKh == maKh);
+
+                if (donHang == null) return NotFound();
+
+                return View(donHang);
+            }
+            return RedirectToAction("Index", "Home");
+        }
     }
 }

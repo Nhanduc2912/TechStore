@@ -4,7 +4,7 @@ using System.Diagnostics;
 using TechStore.Data;
 using TechStore.Models;
 
-namespace TechStore.Controllers
+namespace TechStore.Controllers 
 {
     public class HomeController : Controller
     {
